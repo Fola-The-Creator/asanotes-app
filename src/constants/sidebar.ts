@@ -1,0 +1,1 @@
+export const SIDEBAR_MAX_VISIBLE_ITEMS = 5;

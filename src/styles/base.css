@@ -1,0 +1,38 @@
+@layer base {
+  * {
+    border-color: var(--border);
+    outline-color: color-mix(in srgb, var(--ring) 50%, transparent);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-grey-400 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-grey-500;
+}
+
+/* Selection */
+::selection {
+  @apply bg-accent-500/30 text-grey-900;
+}
+
+/* Forced Styling */
+button[data-slot="dialog-close"] {
+  display: none;
+}
