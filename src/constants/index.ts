@@ -8,4 +8,5 @@ export * from "./api";
 export * from "./notes";
 export * from "./ui";
 export * from "./sidebar";
+export * from "./settings";
 

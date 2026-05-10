@@ -7,6 +7,7 @@ import { MobileHeader } from "@/components/layout/MobileHeader";
 import { NotesList } from "@/components/notes/NotesList";
 import { NoteEditor } from "@/components/editor/NoteEditor";
 import { CommandPalette } from "@/components/command-palette/CommandPalette";
+import { SettingsModal } from "@/components/settings/SettingsModal";
 import { useAppStore, useSelectedNote } from "@/store/useAppStore";
 import { useNotes } from "@/hooks/useNotes";
 
@@ -81,6 +82,9 @@ export default function DashboardLayout({
 
       {/* Command Palette */}
       <CommandPalette />
+
+      {/* Settings Modal */}
+      <SettingsModal />
 
       <div className="hidden">{children}</div>
     </div>

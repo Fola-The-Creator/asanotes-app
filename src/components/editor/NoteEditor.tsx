@@ -31,6 +31,7 @@ import { EditorToolbar } from "./ui/EditorToolbar";
 import { BubbleMenu } from "./ui/BubbleMenu";
 import { TableBubbleMenu } from "./ui/TableBubbleMenu";
 import { AIToolsPanel } from "./ui/AiToolsPanel";
+import { useSettingsStore } from "@/store/useSettingsStore";
 
 export function NoteEditor() {
   const { data: notes = [] } = useNotes();
@@ -54,6 +55,18 @@ export function NoteEditor() {
   const [showTagsModal, setShowTagsModal] = useState(false);
   const [showMoveToModal, setShowMoveToModal] = useState(false);
   const [showHardDeleteModal, setShowHardDeleteModal] = useState(false);
+
+  const confirmDestructiveActions = useSettingsStore(
+    (s) => s.settings.confirmDestructiveActions,
+  );
+
+  const handleHardDelete = () => {
+    if (confirmDestructiveActions) {
+      setShowHardDeleteModal(true);
+    } else {
+      hardDeleteMut.mutate(selectedNote!.id);
+    }
+  };
 
   const {
     editor,
@@ -101,7 +114,7 @@ export function NoteEditor() {
         onTitleBlur={flushTitleSave}
         onToggleFavorite={() => toggleFavoriteMut.mutate(selectedNote.id)}
         onRestore={() => restoreNoteMut.mutate(selectedNote.id)}
-        onHardDelete={() => setShowHardDeleteModal(true)}
+        onHardDelete={handleHardDelete}
         onUnarchive={() => unarchiveNoteMut.mutate(selectedNote.id)}
         onTogglePin={() => togglePinnedMut.mutate(selectedNote.id)}
         onEditTags={() => setShowTagsModal(true)}

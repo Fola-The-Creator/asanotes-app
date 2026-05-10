@@ -1,13 +1,18 @@
 import type { Note } from "@/types";
 import { dummyNotes } from "@/lib/dummy-data";
 import { TRASH_EXPIRY_DAYS } from "@/constants";
+import { useSettingsStore } from "@/store/useSettingsStore";
 
 // In-memory store
 let notesStore: Note[] = [...dummyNotes];
 
-// Purge notes that have been in the Trash for more than 30 days.
+// Purge notes that have been in the Trash beyond the configured expiry period.
 function purgeExpiredNotes(): void {
-  const cutoff = Date.now() - TRASH_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+  // Read from settings store at call time so user changes take effect immediately.
+  // Falls back to the TRASH_EXPIRY_DAYS constant if the store is not yet hydrated.
+  const expiryDays =
+    useSettingsStore.getState().settings.trashExpiryDays ?? TRASH_EXPIRY_DAYS;
+  const cutoff = Date.now() - expiryDays * 24 * 60 * 60 * 1000;
   notesStore = notesStore.filter((note) => {
     if (!note.isDeleted) return true;
     if (!note.deletedAt) return true;

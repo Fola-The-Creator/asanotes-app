@@ -11,6 +11,7 @@ export const useAppStore = create<AppState>((set) => ({
   searchQuery: "",
   sidebarCollapsed: false,
   commandPaletteOpen: false,
+  settingsOpen: false,
   mobileMenuOpen: false,
   mobileView: "list" as MobileView,
 
@@ -52,6 +53,8 @@ export const useAppStore = create<AppState>((set) => ({
     })),
   toggleCommandPalette: () =>
     set((state) => ({ commandPaletteOpen: !state.commandPaletteOpen })),
+  openSettings: () => set({ settingsOpen: true }),
+  closeSettings: () => set({ settingsOpen: false }),
 
   // Note UI Actions
   selectNewNote: (id) =>

@@ -82,14 +82,20 @@ export function ImageNodeView({
       >
         {/* The image */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          ref={imgRef}
-          src={src}
-          alt={alt ?? ""}
-          title={title ?? undefined}
-          draggable={false}
-          className="block w-full h-auto rounded-md"
-        />
+        {src ? (
+          <img
+            ref={imgRef}
+            src={src}
+            alt={alt ?? ""}
+            title={title ?? undefined}
+            draggable={false}
+            className="block w-full h-auto rounded-md"
+          />
+        ) : (
+          <div className="w-full h-32 bg-grey-100 animate-pulse rounded-md flex items-center justify-center text-grey-400 text-sm">
+            Loading image...
+          </div>
+        )}
 
         {/* Resize handles — only visible when selected and editable */}
         {isSelected && editor.isEditable && (

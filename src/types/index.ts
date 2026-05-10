@@ -29,9 +29,9 @@ export interface Note {
   isArchived: boolean;
   isDeleted: boolean;
   isPinned: boolean;
-  /** ISO timestamp set when the note is moved to Trash. Used for 30-day auto-deletion. */
+  // ISO timestamp set when the note is moved to Trash. Used for 30-day auto-deletion.
   deletedAt?: string | null;
-  /** Remembers if the note was archived before being trashed, so restore returns it to the right location. */
+  // Remembers if the note was archived before being trashed, so restore returns it to the right location.
   wasArchived?: boolean;
   createdAt: string;
   updatedAt: string;
@@ -47,6 +47,28 @@ export type ViewType =
   | "tag";
 export type MobileView = "list" | "editor";
 
+// // Settings
+export type ThemeMode = "light" | "dark" | "system";
+export type SaveTrigger = "instant" | "blur";
+
+export interface Settings {
+  // Appearance
+  themeMode: ThemeMode;
+
+  // Editor
+  editorFontSize: number; // 14 | 16 | 18 | 20 (px)
+
+  // Behavior
+  autoOpenNewNote: boolean;
+  saveTrigger: SaveTrigger;
+  reduceMotion: boolean;
+
+  // Notes management
+  trashExpiryDays: number; // 7 | 14 | 30 | 60 | 90
+  confirmDestructiveActions: boolean;
+}
+
+// // App State
 export interface AppState {
   // Notes
   selectedNoteId: string | null;
@@ -63,6 +85,7 @@ export interface AppState {
   searchQuery: string;
   sidebarCollapsed: boolean;
   commandPaletteOpen: boolean;
+  settingsOpen: boolean;
 
   // Mobile UI State
   mobileMenuOpen: boolean;
@@ -77,6 +100,8 @@ export interface AppState {
   setSearchQuery: (query: string) => void;
   toggleSidebar: () => void;
   toggleCommandPalette: () => void;
+  openSettings: () => void;
+  closeSettings: () => void;
 
   // Mobile Actions
   openMobileMenu: () => void;

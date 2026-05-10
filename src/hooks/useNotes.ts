@@ -12,6 +12,7 @@ import {
   hardDeleteNote,
 } from "@/lib/api";
 import { useAppStore } from "@/store/useAppStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 import type { Note } from "@/types";
 
 export function useNotes() {
@@ -31,7 +32,9 @@ export function useCreateNote() {
       queryClient.setQueryData<Note[]>(["notes"], (old) => {
         return old ? [newNote, ...old] : [newNote];
       });
-      if (selectNewNote) {
+      // Respect the autoOpenNewNote setting
+      const { autoOpenNewNote } = useSettingsStore.getState().settings;
+      if (autoOpenNewNote && selectNewNote) {
         selectNewNote(newNote.id);
       }
       useAppStore.getState().setNewNoteId(newNote.id);
@@ -41,6 +44,7 @@ export function useCreateNote() {
     },
   });
 }
+
 
 export function useUpdateNote() {
   const queryClient = useQueryClient();

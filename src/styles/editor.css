@@ -4,13 +4,13 @@
   word-break: break-word;
   outline: none;
   color: var(--color-grey-800);
-  font-size: 0.9375rem; /* 15px — readable, not oversized */
+  font-size: var(--editor-font-size, 0.9375rem); /* Configurable via settings */
   line-height: 1.7;
 }
 
 @media (min-width: 640px) {
   .tiptap {
-    font-size: 1rem; /* 16px on desktop */
+    font-size: var(--editor-font-size, 1rem);
   }
 }
 
@@ -105,12 +105,11 @@
   line-height: 1.65;
 }
 
-/* Paragraphs inside list items don't need extra gap */
 .tiptap li > p {
   margin-bottom: 0;
 }
 
-/* Nested lists — tighter */
+/* Nested lists */
 .tiptap ul ul,
 .tiptap ul ol,
 .tiptap ol ul,

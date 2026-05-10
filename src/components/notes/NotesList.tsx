@@ -193,7 +193,7 @@ export function NotesList() {
             placeholder="Filter notes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 bg-grey-100 border-grey-200 text-grey-900 placeholder:text-grey-500 focus:ring-accent-500"
+            className="pl-9 bg-grey-100 border-grey-200 text-grey-900 placeholder:text-grey-500"
           />
         </div>
       </div>
@@ -213,7 +213,7 @@ export function NotesList() {
             transition={{ duration: 0.15 }}
             className="overflow-hidden px-2"
           >
-            <div className="flex items-start gap-2.5 mt-3 px-3 py-2.5 rounded-lg bg-grey-100 border border-grey-200">
+            <div className="flex items-start gap-2.5 mt-3 px-3 pt-2.5 pb-4.5 border-b border-grey-200 mb-2">
               <AlertTriangle className="w-3.5 h-3.5 text-grey-600 shrink-0 mt-0.5" />
               <p className="text-xs text-grey-700 leading-relaxed">
                 Notes in Trash are permanently deleted after{" "}

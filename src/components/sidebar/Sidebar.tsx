@@ -46,6 +46,7 @@ export function Sidebar() {
     toggleSidebar,
     toggleCommandPalette,
     closeMobileMenu,
+    openSettings,
   } = useAppStore();
 
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -277,6 +278,7 @@ export function Sidebar() {
                 <Button
                   variant="ghost"
                   size="icon"
+                  onClick={openSettings}
                   className="w-full justify-start p-3 font-normal text-grey-600 hover:text-grey-900 hover:bg-grey-200"
                 >
                   <Settings className="w-4 h-4" />
@@ -293,11 +295,17 @@ export function Sidebar() {
               className={`${sidebarCollapsed && "py-3! p-0! justify-center"} p-3 w-full flex-1 flex items-center gap-2 min-w-0`}
             >
               {/*eslint-disable-next-line @next/next/no-img-element*/}
-              <img
-                src={user?.avatar || ""}
-                alt={user?.name || "User"}
-                className={`w-8 h-8 rounded-full object-cover shrink-0 ${!user ? "bg-grey-200" : ""}`}
-              />
+              {user?.avatar ? (
+                <img
+                  src={user.avatar}
+                  alt={user?.name || "User"}
+                  className="w-8 h-8 rounded-full object-cover shrink-0"
+                />
+              ) : (
+                <div className="w-8 h-8 rounded-full shrink-0 bg-grey-200 flex items-center justify-center text-xs font-medium text-grey-500">
+                  {user?.name?.charAt(0).toUpperCase() || "U"}
+                </div>
+              )}
               {!sidebarCollapsed && (
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-grey-900 truncate">

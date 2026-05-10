@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { QueryProvider } from "@/providers/QueryProvider";
 import { ThemeProvider } from "@/providers/ThemeProvider";
+import { SettingsEffects } from "@/providers/SettingsEffects";
 import "@/styles/globals.css";
 
 const PlusJakartaSans = Plus_Jakarta_Sans({
@@ -57,7 +58,10 @@ export default function RootLayout({
           value={{ light: "light-mode", dark: "dark" }}
           disableTransitionOnChange
         >
-          <QueryProvider>{children}</QueryProvider>
+          <QueryProvider>
+            <SettingsEffects />
+            {children}
+          </QueryProvider>
         </ThemeProvider>
         <Analytics />
       </body>

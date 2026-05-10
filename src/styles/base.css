@@ -36,3 +36,46 @@
 button[data-slot="dialog-close"] {
   display: none;
 }
+
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Reduce motion — applied when the user enables this setting */
+[data-reduce-motion="true"] *,
+[data-reduce-motion="true"] *::before,
+[data-reduce-motion="true"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* Settings modal — responsive positioning */
+
+/* Mobile: full-width bottom sheet */
+.settings-modal {
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 90svh;
+  border-radius: 1.25rem 1.25rem 0 0;
+}
+
+/* Desktop: centered dialog */
+@media (min-width: 640px) {
+  .settings-modal {
+    bottom: auto;
+    left: 50%;
+    right: auto;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: min(680px, calc(100vw - 2rem));
+    height: min(560px, 90svh);
+    border-radius: 1rem;
+  }
+}

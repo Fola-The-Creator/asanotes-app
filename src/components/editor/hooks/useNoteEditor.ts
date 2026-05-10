@@ -19,6 +19,7 @@ import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
 import { createLowlight, common } from "lowlight";
 import { CONTENT_DEBOUNCE_MS, TITLE_DEBOUNCE_MS } from "@/constants";
 import { useAppStore } from "@/store/useAppStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 import { isNoteContentEmpty } from "@/lib/noteUtils";
 import type { UseMutationResult } from "@tanstack/react-query";
 
@@ -47,7 +48,9 @@ export function useNoteEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-  const pendingContentRef = useRef<{ content: string; preview: string } | null>(null);
+  const pendingContentRef = useRef<{ content: string; preview: string } | null>(
+    null,
+  );
   const pendingTitleRef = useRef<string | null>(null);
   const contentTimerRef = useRef<NodeJS.Timeout | null>(null);
   const titleTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -112,7 +115,10 @@ export function useNoteEditor({
     setIsSaving(true);
 
     updateMutRef.current.mutate(
-      { id: savedForId, updates: { content: pending.content, preview: pending.preview } },
+      {
+        id: savedForId,
+        updates: { content: pending.content, preview: pending.preview },
+      },
       {
         onSuccess: () => {
           if (noteIdRef.current === savedForId) {
@@ -126,7 +132,7 @@ export function useNoteEditor({
             setIsSaving(false);
           }
         },
-      }
+      },
     );
   }, [clearContentTimer]);
 
@@ -137,30 +143,54 @@ export function useNoteEditor({
 
     clearTitleTimer();
     pendingTitleRef.current = null;
-    updateMutRef.current.mutate({ id: noteId, updates: { title: pendingTitle } });
+    updateMutRef.current.mutate({
+      id: noteId,
+      updates: { title: pendingTitle },
+    });
   }, [clearTitleTimer]);
 
   // TipTap editor
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({ heading: { levels: [1, 2, 3] }, codeBlock: false }),
+      StarterKit.configure({
+        heading: { levels: [1, 2, 3] },
+        codeBlock: false,
+      }),
       Underline,
-      Link.configure({ openOnClick: true, HTMLAttributes: { class: "text-accent-500 underline cursor-pointer" } }),
-      ResizableImage.configure({ HTMLAttributes: { class: "max-w-full rounded-lg" } }),
+      Link.configure({
+        openOnClick: true,
+        HTMLAttributes: { class: "text-accent-500 underline cursor-pointer" },
+      }),
+      ResizableImage.configure({
+        HTMLAttributes: { class: "max-w-full rounded-lg" },
+      }),
       TaskList,
       TaskItem.configure({ nested: true }),
       Table.configure({ resizable: true }),
-      TableRow, TableCell, TableHeader,
-      TextAlign.configure({ types: ["heading", "paragraph"], alignments: ["left", "center", "right", "justify"], defaultAlignment: "left" }),
-      SuperscriptExt, SubscriptExt,
+      TableRow,
+      TableCell,
+      TableHeader,
+      TextAlign.configure({
+        types: ["heading", "paragraph"],
+        alignments: ["left", "center", "right", "justify"],
+        defaultAlignment: "left",
+      }),
+      SuperscriptExt,
+      SubscriptExt,
       Highlight.configure({ multicolor: true }),
-      CodeBlockLowlight.configure({ lowlight, HTMLAttributes: { class: "code-block" } }),
+      CodeBlockLowlight.configure({
+        lowlight,
+        HTMLAttributes: { class: "code-block" },
+      }),
       Placeholder.configure({ placeholder: "Start writing your note..." }),
     ],
     content: initialContent,
     editable: !isInTrash,
     editorProps: {
-      attributes: { class: "tiptap prose prose-sm max-w-none focus:outline-none min-h-[calc(100vh-300px)]" },
+      attributes: {
+        class:
+          "tiptap prose prose-sm max-w-none focus:outline-none min-h-[calc(100vh-300px)]",
+      },
     },
     onCreate: ({ editor }) => {
       editorRef.current = editor;
@@ -174,14 +204,21 @@ export function useNoteEditor({
         content,
         preview: text.length > 150 ? text.slice(0, 150) + "..." : text,
       };
-     
+
       if (!hasUnsavedChangesRef.current) {
         hasUnsavedChangesRef.current = true;
         setLastSaved(null);
       }
 
+      // When saveTrigger is 'blur', skip the debounce — save on blur only.
+      const { saveTrigger } = useSettingsStore.getState().settings;
+      if (saveTrigger === "blur") return;
+
       clearContentTimer();
-      contentTimerRef.current = setTimeout(flushContentSave, CONTENT_DEBOUNCE_MS);
+      contentTimerRef.current = setTimeout(
+        flushContentSave,
+        CONTENT_DEBOUNCE_MS,
+      );
     },
     immediatelyRender: false,
   });
@@ -193,13 +230,12 @@ export function useNoteEditor({
   useEffect(() => {
     editor?.setEditable(!isInTrash);
   }, [editor, isInTrash]);
-  
+
   useEffect(() => {
     if (!editor) return;
 
     const prevNoteId = prevNoteIdRef.current;
 
-    
     if (prevNoteId && prevNoteId !== selectedNoteId) {
       if (isNoteContentEmpty(editor, titleRef.current)) {
         clearAllPending();
@@ -207,7 +243,6 @@ export function useNoteEditor({
       }
     }
 
-    
     if (selectedNoteId) {
       setTitle(initialTitle);
       titleRef.current = initialTitle;
@@ -246,18 +281,24 @@ export function useNoteEditor({
   }, [clearAllPending, maybeDeleteIfEmpty]);
 
   // Handlers
-  const handleTitleChange = useCallback((newTitle: string) => {
-    setTitle(newTitle);
-    titleRef.current = newTitle;
-    pendingTitleRef.current = newTitle;
-    clearTitleTimer();
-    titleTimerRef.current = setTimeout(flushTitleSave, TITLE_DEBOUNCE_MS);
-  }, [clearTitleTimer, flushTitleSave]);
+  const handleTitleChange = useCallback(
+    (newTitle: string) => {
+      setTitle(newTitle);
+      titleRef.current = newTitle;
+      pendingTitleRef.current = newTitle;
+      clearTitleTimer();
+      titleTimerRef.current = setTimeout(flushTitleSave, TITLE_DEBOUNCE_MS);
+    },
+    [clearTitleTimer, flushTitleSave],
+  );
 
-  const handleEditorBlur = useCallback((e: React.FocusEvent) => {
-    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
-    if (!isInTrash) flushContentSave();
-  }, [isInTrash, flushContentSave]);
+  const handleEditorBlur = useCallback(
+    (e: React.FocusEvent) => {
+      if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+      if (!isInTrash) flushContentSave();
+    },
+    [isInTrash, flushContentSave],
+  );
 
   return {
     editor,
