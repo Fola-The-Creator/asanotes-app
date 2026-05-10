@@ -11,12 +11,8 @@ import {
   Settings,
   PanelLeftClose,
   PanelLeft,
-  Moon,
-  Sun,
-  Monitor,
   X,
 } from "lucide-react";
-import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/useAppStore";
@@ -48,29 +44,6 @@ export function Sidebar() {
     closeMobileMenu,
     openSettings,
   } = useAppStore();
-
-  const { theme, setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => {
-    // eslint-disable-next-line
-    setMounted(true);
-  }, []);
-
-  const nextTheme = theme === "light" ? "dark" : theme === "dark" ? "system" : "light";
-
-  const getThemeIcon = () => {
-    if (!mounted) return <Sun className="w-4 h-4" />;
-    if (theme === "light") return <Moon className="w-4 h-4" />;
-    if (theme === "dark") return <Monitor className="w-4 h-4" />;
-    return <Sun className="w-4 h-4" />;
-  };
-
-  const getThemeLabel = () => {
-    if (!mounted) return "Dark mode";
-    if (theme === "light") return "Dark mode";
-    if (theme === "dark") return "System theme";
-    return "Light mode";
-  };
 
   const { data: folders = [] } = useFolders();
   const { data: tags = [] } = useTags();
@@ -207,7 +180,6 @@ export function Sidebar() {
         {/* Navigation */}
         <ScrollArea className="flex-1 overflow-y-auto">
           <div className="p-2 space-y-1">
-            {/* Nav items */}
             {navItems.map((item) => (
               <Tooltip key={item.id}>
                 <TooltipTrigger asChild>
@@ -250,28 +222,6 @@ export function Sidebar() {
               sidebarCollapsed && "flex-col",
             )}
           >
-            {/* Theme Toggle */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setTheme(nextTheme)}
-                  className="w-full justify-start p-3 font-normal text-grey-600 hover:text-grey-900 hover:bg-grey-200"
-                >
-                  {getThemeIcon()}
-                  {!sidebarCollapsed && (
-                    <span>{getThemeLabel()}</span>
-                  )}
-                </Button>
-              </TooltipTrigger>
-              {sidebarCollapsed && (
-                <TooltipContent side="right">
-                  {getThemeLabel()}
-                </TooltipContent>
-              )}
-            </Tooltip>
-
             {/* Settings */}
             <Tooltip>
               <TooltipTrigger asChild>

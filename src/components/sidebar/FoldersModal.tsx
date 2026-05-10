@@ -180,7 +180,7 @@ export function FoldersModal({
         </DialogContent>
       </Dialog>
 
-      {/* Delete confirm via portal */}
+      {/* Single delete confirm */}
       <DeleteConfirmModal
         open={!!pendingDeleteId}
         title="Delete folder?"

@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "motion/react";
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/Dialog";
 import { Input } from "@/components/ui/Input";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
@@ -53,9 +53,14 @@ export function CommandPalette() {
             className="border-none bg-transparent! p-0 h-auto focus-visible:ring-0 text-grey-900 placeholder:text-grey-500 min-w-0"
             autoFocus
           />
-          <kbd className="text-xs bg-grey-200 px-1.5 py-0.5 rounded text-grey-500 shrink-0">
+          {/* Clickable ESC label — useful on mobile where there's no physical key */}
+          <button
+            onClick={() => toggleCommandPalette()}
+            className="text-xs bg-grey-200 hover:bg-grey-300 px-1.5 py-0.5 rounded text-grey-500 shrink-0 transition-colors"
+            aria-label="Close"
+          >
             ESC
-          </kbd>
+          </button>
         </div>
 
         {/* Results */}

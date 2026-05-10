@@ -20,6 +20,8 @@ interface NoteTagsModalProps {
   onClose: () => void;
   note: Note;
   allTags: Tag[];
+  // When provided, tags are applied to all listed note IDs instead of just this one.
+  bulkNoteIds?: string[];
 }
 
 export function NoteTagsModal({
@@ -27,6 +29,7 @@ export function NoteTagsModal({
   onClose,
   note,
   allTags,
+  bulkNoteIds,
 }: NoteTagsModalProps) {
   // Track noteId to reset state when modal re-opens for a different note
   const [trackedNoteId, setTrackedNoteId] = useState(note.id);
@@ -62,11 +65,17 @@ export function NoteTagsModal({
   };
 
   const handleClose = () => {
-    const changed =
-      selectedIds.length !== note.tags.length ||
-      selectedIds.some((id) => !note.tags.includes(id));
-    if (changed) {
-      assignTags.mutate({ noteId: note.id, tagIds: selectedIds });
+    if (bulkNoteIds && bulkNoteIds.length > 0) {
+      bulkNoteIds.forEach((id) => {
+        assignTags.mutate({ noteId: id, tagIds: selectedIds });
+      });
+    } else {
+      const changed =
+        selectedIds.length !== note.tags.length ||
+        selectedIds.some((id) => !note.tags.includes(id));
+      if (changed) {
+        assignTags.mutate({ noteId: note.id, tagIds: selectedIds });
+      }
     }
     setShowNewTagInput(false);
     setNewTagValue("");

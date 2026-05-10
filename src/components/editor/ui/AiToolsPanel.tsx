@@ -1,7 +1,14 @@
 "use client";
 
 import { motion } from "motion/react";
-import { FileText, PenLine, Lightbulb, CheckCircle, Wand2 } from "lucide-react";
+import {
+  FileText,
+  PenLine,
+  Lightbulb,
+  CheckCircle,
+  Wand2,
+  Languages,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import {
   Tooltip,
@@ -41,6 +48,12 @@ const aiTools = [
     description: "Continue writing from here",
     color: "text-pink-500",
   },
+  {
+    icon: Languages,
+    label: "Translate",
+    description: "Translate selected text",
+    color: "text-cyan-500",
+  },
 ];
 
 export function AIToolsPanel() {
@@ -58,9 +71,9 @@ export function AIToolsPanel() {
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
-                  className=" justify-start gap-2 text-grey-600 hover:text-grey-900 hover:bg-grey-100"
+                  className="justify-start gap-2 text-grey-600 hover:text-grey-900 hover:bg-grey-100"
                   onClick={() => {
-                    // Placeholder for AI functionality
+                    // Placeholder — functionality to be implemented per tool
                     console.log(`AI tool: ${tool.label}`);
                   }}
                 >

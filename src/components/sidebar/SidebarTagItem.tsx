@@ -76,7 +76,6 @@ export function SidebarTagItem({
     return (
       <div className="flex items-center gap-1 px-3 py-2 rounded-lg bg-grey-100">
         <TagIcon className="w-4 h-4 shrink-0 text-grey-500" />
-        {/* <span className="text-grey-400 text-sm">#</span> */}
         <input
           ref={inputRef}
           value={renameValue}

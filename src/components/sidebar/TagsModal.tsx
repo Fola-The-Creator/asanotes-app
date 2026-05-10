@@ -55,9 +55,7 @@ export function TagsModal({ open, onClose, tags, notes }: TagsModalProps) {
   };
 
   const pendingTag = tags.find((t) => t.id === pendingDeleteId);
-  const pendingNoteCount = pendingDeleteId
-    ? getTagNoteCount(pendingDeleteId)
-    : 0;
+  const pendingNoteCount = pendingDeleteId ? getTagNoteCount(pendingDeleteId) : 0;
 
   return (
     <>
@@ -69,15 +67,17 @@ export function TagsModal({ open, onClose, tags, notes }: TagsModalProps) {
                 <TagIcon className="w-4 h-4 text-grey-500" />
                 <DialogTitle className="text-base">All Tags</DialogTitle>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={onClose}
-                className="w-7 h-7 text-grey-500 hover:text-grey-900"
-                aria-label="Close"
-              >
-                <X className="w-4 h-4" />
-              </Button>
+              <div className="flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={onClose}
+                  className="w-7 h-7 text-grey-500 hover:text-grey-900"
+                  aria-label="Close"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </DialogHeader>
 
@@ -110,7 +110,7 @@ export function TagsModal({ open, onClose, tags, notes }: TagsModalProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Delete confirm via portal */}
+      {/* Single delete confirm */}
       <DeleteConfirmModal
         open={!!pendingDeleteId}
         title="Delete tag?"

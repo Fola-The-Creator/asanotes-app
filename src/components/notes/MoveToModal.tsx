@@ -9,6 +9,8 @@ import {
 } from "@/components/ui/Dialog";
 import { ScrollArea } from "@/components/ui/ScrollArea";
 import { useUpdateNote } from "@/hooks/useNotes";
+import { useQueryClient } from "@tanstack/react-query";
+import type { Note as NoteType } from "@/types";
 import { cn } from "@/lib/utils";
 import type { Folder, Note } from "@/types";
 
@@ -17,12 +19,26 @@ interface MoveToModalProps {
   onClose: () => void;
   note: Note;
   folders: Folder[];
+  // When provided, all listed note IDs are moved instead of just the single note.
+  bulkNoteIds?: string[];
 }
 
-export function MoveToModal({ open, onClose, note, folders }: MoveToModalProps) {
+export function MoveToModal({ open, onClose, note, folders, bulkNoteIds }: MoveToModalProps) {
   const updateNote = useUpdateNote();
+  const queryClient = useQueryClient();
 
   const handleMove = (folderId: string | null) => {
+    if (bulkNoteIds && bulkNoteIds.length > 0) {
+      const allNotes = queryClient.getQueryData<NoteType[]>(["notes"]) ?? [];
+      bulkNoteIds.forEach((id) => {
+        const target = allNotes.find((n) => n.id === id);
+        if (target && target.folderId !== folderId) {
+          updateNote.mutate({ id, updates: { folderId } });
+        }
+      });
+      onClose();
+      return;
+    }
     if (folderId === note.folderId) {
       onClose();
       return;
@@ -35,7 +51,11 @@ export function MoveToModal({ open, onClose, note, folders }: MoveToModalProps) 
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="sm:max-w-xs p-0 gap-0 flex flex-col max-h-[70vh]">
         <DialogHeader className="px-4 pt-4 pb-3 border-b border-grey-200 shrink-0">
-          <DialogTitle className="text-base">Move to folder</DialogTitle>
+          <DialogTitle className="text-base">
+            {bulkNoteIds && bulkNoteIds.length > 1
+              ? `Move ${bulkNoteIds.length} notes to folder`
+              : "Move to folder"}
+          </DialogTitle>
         </DialogHeader>
 
         <ScrollArea className="flex-1 overflow-hidden">

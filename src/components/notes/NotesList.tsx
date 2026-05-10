@@ -25,6 +25,7 @@ import {
 } from "@/hooks/useNotes";
 import { useFolders } from "@/hooks/useFolders";
 import { useTags } from "@/hooks/useTags";
+import { useSelectionStore } from "@/store/useSelectionStore";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ScrollArea } from "@/components/ui/ScrollArea";
@@ -39,6 +40,7 @@ import type { SortOption, ViewType } from "@/types";
 import { NoteCard } from "./NoteCard";
 import { NoteTagsModal } from "./NoteTagsModal";
 import { MoveToModal } from "./MoveToModal";
+import { BulkActionBar, SelectionToggleButton } from "./BulkActionBar";
 import { useIsMobile } from "@/hooks/useMobile";
 import { PINNED_SECTION_VIEWS } from "@/constants";
 
@@ -90,11 +92,17 @@ export function NotesList() {
 
   const [isPinnedOpen, setIsPinnedOpen] = useState(true);
 
-  // Modal state
+  // Single-note modal state
   const [tagModalNoteId, setTagModalNoteId] = useState<string | null>(null);
   const [moveToNoteId, setMoveToNoteId] = useState<string | null>(null);
-  // Permanent delete confirmation
   const [hardDeleteNoteId, setHardDeleteNoteId] = useState<string | null>(null);
+
+  // Bulk-action modal state
+  const [bulkTagNoteIds, setBulkTagNoteIds] = useState<string[]>([]);
+  const [bulkMoveNoteIds, setBulkMoveNoteIds] = useState<string[]>([]);
+  const [bulkDeleteConfirmIds, setBulkDeleteConfirmIds] = useState<string[]>([]);
+
+  const { exitSelectionMode } = useSelectionStore();
 
   const handleNoteSelect = (id: string) => {
     setSelectedNote(id);
@@ -112,6 +120,7 @@ export function NotesList() {
     : filteredNotes;
 
   const totalCount = filteredNotes.length;
+  const allFilteredIds = filteredNotes.map((n) => n.id);
 
   const getViewTitle = () => {
     if (viewType === "folder" && selectedFolderId) {
@@ -143,47 +152,68 @@ export function NotesList() {
     setHardDeleteNoteId(null);
   };
 
+  const handleBulkDelete = (ids: string[]) => {
+    setBulkDeleteConfirmIds(ids);
+  };
+
+  const confirmBulkDelete = () => {
+    bulkDeleteConfirmIds.forEach((id) => deleteNote.mutate(id));
+    setBulkDeleteConfirmIds([]);
+    exitSelectionMode();
+  };
+
+  const handleBulkMoveTo = (ids: string[]) => {
+    setBulkMoveNoteIds(ids);
+  };
+
+  const handleBulkEditTags = (ids: string[]) => {
+    setBulkTagNoteIds(ids);
+  };
+
   return (
-    <div className="flex flex-col w-full h-full bg-grey-0 border-r border-grey-200">
+    <div className="flex flex-col w-full h-full bg-grey-0 border-r border-grey-200 relative">
       {/* Header */}
       <div className="p-4 border-b border-grey-200">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold text-grey-900">
             {getViewTitle()}
           </h2>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-grey-600 hover:text-grey-900"
-              >
-                {sortOptions.find((s) => s.value === sortOption)?.icon && (
-                  <span className="mr-1">
-                    {(() => {
-                      const Icon = sortOptions.find(
-                        (s) => s.value === sortOption,
-                      )?.icon;
-                      return Icon ? <Icon className="w-4 h-4" /> : null;
-                    })()}
-                  </span>
-                )}
-                Sort
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              {sortOptions.map((option) => (
-                <DropdownMenuItem
-                  key={option.value}
-                  onClick={() => setSortOption(option.value)}
-                  className={cn(sortOption === option.value && "bg-grey-100")}
+          <div className="flex items-center gap-1">
+            {/* <SelectionToggleButton /> */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-grey-600 hover:text-grey-900"
                 >
-                  <option.icon className="w-4 h-4 mr-2" />
-                  {option.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  {sortOptions.find((s) => s.value === sortOption)?.icon && (
+                    <span className="mr-1">
+                      {(() => {
+                        const Icon = sortOptions.find(
+                          (s) => s.value === sortOption,
+                        )?.icon;
+                        return Icon ? <Icon className="w-4 h-4" /> : null;
+                      })()}
+                    </span>
+                  )}
+                  Sort
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {sortOptions.map((option) => (
+                  <DropdownMenuItem
+                    key={option.value}
+                    onClick={() => setSortOption(option.value)}
+                    className={cn(sortOption === option.value && "bg-grey-100")}
+                  >
+                    <option.icon className="w-4 h-4 mr-2" />
+                    {option.label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {/* Search */}
@@ -203,10 +233,6 @@ export function NotesList() {
         {viewType === "trash" && (
           <motion.div
             key="trash-banner"
-            // initial={{ opacity: 0, height: 0 }}
-            // animate={{ opacity: 1, height: "auto" }}
-            // exit={{ opacity: 0, height: 0 }}
-            // transition={{ duration: 0.2 }}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95 }}
@@ -345,7 +371,15 @@ export function NotesList() {
         </p>
       </div>
 
-      {/* Tag assignment modal */}
+      {/* Bulk action bar */}
+      <BulkActionBar
+        allIds={allFilteredIds}
+        onDelete={handleBulkDelete}
+        onMoveTo={handleBulkMoveTo}
+        onEditTags={handleBulkEditTags}
+      />
+
+      {/* Single-note tag modal */}
       {tagModalNote && (
         <NoteTagsModal
           open={!!tagModalNoteId}
@@ -355,7 +389,7 @@ export function NotesList() {
         />
       )}
 
-      {/* Move to folder modal */}
+      {/* Single-note move modal */}
       {moveToNote && (
         <MoveToModal
           open={!!moveToNoteId}
@@ -365,7 +399,35 @@ export function NotesList() {
         />
       )}
 
-      {/* Permanent delete confirmation modal */}
+      {/* Bulk move modal — reuse MoveToModal with the first selected note as a proxy */}
+      {bulkMoveNoteIds.length > 0 && (
+        <MoveToModal
+          open={true}
+          onClose={() => {
+            setBulkMoveNoteIds([]);
+            exitSelectionMode();
+          }}
+          note={notes.find((n) => n.id === bulkMoveNoteIds[0])!}
+          folders={folders}
+          bulkNoteIds={bulkMoveNoteIds}
+        />
+      )}
+
+      {/* Bulk tag modal — open with the first selected note */}
+      {bulkTagNoteIds.length > 0 && (
+        <NoteTagsModal
+          open={true}
+          onClose={() => {
+            setBulkTagNoteIds([]);
+            exitSelectionMode();
+          }}
+          note={notes.find((n) => n.id === bulkTagNoteIds[0])!}
+          allTags={tags}
+          bulkNoteIds={bulkTagNoteIds}
+        />
+      )}
+
+      {/* Single-note permanent delete confirm */}
       <DeleteConfirmModal
         open={!!hardDeleteNoteId}
         title="Permanently delete note?"
@@ -373,6 +435,16 @@ export function NotesList() {
         isPending={hardDeleteNote.isPending}
         onConfirm={handleConfirmHardDelete}
         onCancel={() => setHardDeleteNoteId(null)}
+      />
+
+      {/* Bulk delete confirm */}
+      <DeleteConfirmModal
+        open={bulkDeleteConfirmIds.length > 0}
+        title={`Move ${bulkDeleteConfirmIds.length} ${bulkDeleteConfirmIds.length === 1 ? "note" : "notes"} to trash?`}
+        description="These notes will be moved to trash and can be restored within 30 days."
+        isPending={deleteNote.isPending}
+        onConfirm={confirmBulkDelete}
+        onCancel={() => setBulkDeleteConfirmIds([])}
       />
     </div>
   );

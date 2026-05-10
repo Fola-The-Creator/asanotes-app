@@ -42,7 +42,6 @@ export function SidebarFolderItem({
   const [renameValue, setRenameValue] = useState(folder.name);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-focus rename input
   useEffect(() => {
     if (isRenaming) {
       inputRef.current?.focus();
@@ -134,7 +133,7 @@ export function SidebarFolderItem({
         <span className="flex-1 truncate max-w-[150px]">{folder.name}</span>
       </button>
 
-      {/* Note count — hidden on hover for desktop, always hidden on touch (menu replaces it) */}
+      {/* Note count — hidden on hover for desktop, always hidden on touch */}
       <span
         className={cn(
           "text-xs text-grey-500 shrink-0 transition-opacity",
@@ -144,7 +143,7 @@ export function SidebarFolderItem({
         {noteCount}
       </span>
 
-      {/* Context menu — opacity-0 on desktop until hover; always visible on touch */}
+      {/* Context menu */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
           <button
