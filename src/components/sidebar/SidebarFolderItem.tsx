@@ -74,7 +74,7 @@ export function SidebarFolderItem({
 
   if (isRenaming) {
     return (
-      <div className="flex items-center gap-1 px-3 py-2 rounded-lg bg-grey-100">
+      <div className="flex items-center gap-1 px-3 py-2 rounded-md bg-grey-100">
         <FolderClosed className="w-4 h-4 shrink-0 text-grey-500" />
         <input
           ref={inputRef}
@@ -112,10 +112,10 @@ export function SidebarFolderItem({
   return (
     <div
       className={cn(
-        "group relative w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+        "group relative w-full flex items-center gap-3 px-3 py-1.5 rounded-md text-[13px] transition-all duration-150",
         isSelected
-          ? "bg-grey-200 text-grey-900"
-          : "text-grey-600 hover:bg-grey-100 hover:text-grey-900",
+          ? "bg-grey-200/80 text-grey-900 shadow-inset"
+          : "text-grey-500 hover:bg-grey-100/70 hover:text-grey-800",
         compact && "py-1.5",
       )}
     >

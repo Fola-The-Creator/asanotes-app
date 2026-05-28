@@ -9,10 +9,52 @@
   }
 }
 
-/* Scrollbar styling */
+/* ── Glass morphism utilities ──────────────────────────────────── */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-heavy {
+  background: var(--glass-bg-heavy);
+  backdrop-filter: blur(32px) saturate(200%);
+  -webkit-backdrop-filter: blur(32px) saturate(200%);
+  border: 1px solid var(--glass-border-strong);
+}
+
+/* ── Card surface utility ──────────────────────────────────────── */
+.card-surface {
+  background-color: var(--card);
+  border: 1px solid var(--card-border);
+  /* box-shadow: var(--shadow-card); */
+}
+
+/* ── Tag pill utility ──────────────────────────────────────────── */
+.tag-pill {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.6875rem;
+  line-height: 1;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--color-grey-500) 14%, transparent);
+  color: var(--color-grey-600);
+  letter-spacing: 0.01em;
+  line-height: 1rem;
+  white-space: nowrap;
+}
+
+/* ── Inner glow — top highlight for floating panels ────────────── */
+.inner-glow {
+  box-shadow: var(--shadow-inset);
+}
+
+/* ── Scrollbar styling ─────────────────────────────────────────── */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -20,11 +62,13 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-grey-400 rounded-full;
+  background: color-mix(in srgb, var(--color-grey-500) 40%, transparent);
+  border-radius: 9999px;
+  transition: background 150ms;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-grey-500;
+  background: color-mix(in srgb, var(--color-grey-500) 70%, transparent);
 }
 
 /* Selection */

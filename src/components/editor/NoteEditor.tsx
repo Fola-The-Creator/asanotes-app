@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { EditorContent } from "@tiptap/react";
 import { cn } from "@/lib/utils";
-import { useSelectedNote } from "@/store/useAppStore";
 import {
+  useSelectedNote,
   useNotes,
   useUpdateNote,
   useToggleFavorite,
@@ -14,9 +14,9 @@ import {
   useDeleteNote,
   useRestoreNote,
   useHardDeleteNote,
-} from "@/hooks/useNotes";
-import { useFolders } from "@/hooks/useFolders";
-import { useTags } from "@/hooks/useTags";
+  useFolders,
+  useTags,
+} from "@/hooks";
 import { ScrollArea } from "@/components/ui/ScrollArea";
 import { DeleteConfirmModal } from "@/components/ui/DeleteConfirmModal";
 import { NoteTagsModal } from "@/components/notes/NoteTagsModal";
@@ -130,14 +130,15 @@ export function NoteEditor() {
       />
 
       {!isInTrash && <EditorToolbar editor={editor} />}
-      {!isInTrash && <AIToolsPanel />}
 
+      {/* Editor content area — relative so AI panel can float inside */}
       <div
-        className={cn("flex-1 flex overflow-hidden", isInTrash && "opacity-70")}
+        className={cn("flex-1 flex overflow-hidden relative", isInTrash && "opacity-70")}
       >
+        {!isInTrash && <AIToolsPanel />}
         <ScrollArea className="flex-1">
-          <div className="p-6 pb-[200px]">
-            {editor && (
+          <div className="px-6 pt-8 pb-[200px]">
+            {editor && !isInTrash && (
               <>
                 <BubbleMenu editor={editor} />
                 <TableBubbleMenu editor={editor} />

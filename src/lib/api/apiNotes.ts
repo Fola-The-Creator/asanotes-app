@@ -2,14 +2,14 @@ import type { Note } from "@/types";
 import { dummyNotes } from "@/lib/dummy-data";
 import { TRASH_EXPIRY_DAYS } from "@/constants";
 import { useSettingsStore } from "@/store/useSettingsStore";
+import { useAppStore } from "@/store/useAppStore";
+import { isNoteDataEmpty } from "@/lib/noteUtils";
 
 // In-memory store
 let notesStore: Note[] = [...dummyNotes];
 
 // Purge notes that have been in the Trash beyond the configured expiry period.
 function purgeExpiredNotes(): void {
-  // Read from settings store at call time so user changes take effect immediately.
-  // Falls back to the TRASH_EXPIRY_DAYS constant if the store is not yet hydrated.
   const expiryDays =
     useSettingsStore.getState().settings.trashExpiryDays ?? TRASH_EXPIRY_DAYS;
   const cutoff = Date.now() - expiryDays * 24 * 60 * 60 * 1000;
@@ -20,8 +20,18 @@ function purgeExpiredNotes(): void {
   });
 }
 
+// Purge any stale empty notes that should not persist in the library.
+function purgeEmptyNotes(): void {
+  const { selectedNoteId, newNoteId } = useAppStore.getState();
+  notesStore = notesStore.filter((note) => {
+    if (note.id === selectedNoteId || note.id === newNoteId) return true;
+    return !isNoteDataEmpty(note.title, note.content);
+  });
+}
+
 export async function getNotes(): Promise<Note[]> {
   purgeExpiredNotes();
+  purgeEmptyNotes();
   return [...notesStore];
 }
 

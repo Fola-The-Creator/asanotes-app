@@ -1,17 +1,9 @@
 "use client";
 
 import { Clock, ShieldAlert } from "lucide-react";
-import { useSettings } from "@/hooks/useSettings";
-import { TRASH_EXPIRY_OPTIONS } from "@/constants";
+import { useSettings } from "@/hooks";
+import { TRASH_EXPIRY_OPTIONS, EXPIRY_LABELS } from "@/constants";
 import { SettingToggleRow } from "@/components/settings/SettingToggleRow";
-
-const EXPIRY_LABELS: Record<number, string> = {
-  7: "7 days",
-  14: "14 days",
-  30: "30 days",
-  60: "60 days",
-  90: "90 days",
-};
 
 export function NotesSection() {
   const { settings, updateSetting } = useSettings();

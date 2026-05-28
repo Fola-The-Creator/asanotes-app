@@ -1,9 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { useAppStore } from "@/store/useAppStore";
-import { useFolders } from "@/hooks/useFolders";
-import { useTags } from "@/hooks/useTags";
-import { useNotes, useCreateNote } from "@/hooks/useNotes";
+import { useFolders, useTags, useNotes, useCreateNote } from "@/hooks";
 import {
   FileText,
   Folder,

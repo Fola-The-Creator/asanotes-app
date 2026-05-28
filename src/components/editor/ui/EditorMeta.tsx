@@ -1,4 +1,3 @@
-import { Calendar, Tag as TagIcon } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 
 interface EditorMetaProps {
@@ -9,37 +8,33 @@ interface EditorMetaProps {
 
 export function EditorMeta({ createdAt, updatedAt, tags }: EditorMetaProps) {
   return (
-    <div className="flex items-center gap-4 px-4 py-2 border-b border-grey-200 text-xs text-grey-500 overflow-x-auto shrink-0">
-      <div className="flex items-center gap-1.5 shrink-0">
-        <Calendar className="w-3.5 h-3.5" />
-        <span>
-          Created {format(new Date(createdAt), "MMM d, yyyy")}
-        </span>
-      </div>
+    <div className="flex items-center gap-2 px-6 pb-3 shrink-0 overflow-x-auto scrollbar-none">
+      <span className="text-[11px] text-grey-500 tabular-nums shrink-0">
+        {format(new Date(createdAt), "MMM d, yyyy")}
+      </span>
 
-      <div className="flex items-center gap-1.5 shrink-0">
-        <span>
-          Updated{" "}
-          {formatDistanceToNow(new Date(updatedAt), {
-            addSuffix: true,
-          })}
-        </span>
-      </div>
+      <span className="text-grey-300 text-[10px] shrink-0">·</span>
+
+      <span className="text-[11px] text-grey-500 shrink-0">
+        Edited {formatDistanceToNow(new Date(updatedAt), { addSuffix: true })}
+      </span>
 
       {tags.length > 0 && (
-        <div className="hidden lg:flex items-center gap-1.5">
-          <TagIcon className="w-3.5 h-3.5" />
-          <div className="flex items-center gap-1">
-            {tags.map((tag) => (
-              <span
-                key={tag.id}
-                className="px-1.5 py-0.5 rounded-full bg-grey-200 text-grey-600"
-              >
+        <>
+          <span className="text-grey-300 text-[10px] shrink-0">·</span>
+          <div className="flex items-center gap-1 overflow-hidden">
+            {tags.slice(0, 2).map((tag) => (
+              <span key={tag.id} className="tag-pill shrink-0">
                 #{tag.name}
               </span>
             ))}
+            {tags.length > 2 && (
+              <span className="text-[11px] text-grey-500 shrink-0">
+                +{tags.length - 2}
+              </span>
+            )}
           </div>
-        </div>
+        </>
       )}
     </div>
   );

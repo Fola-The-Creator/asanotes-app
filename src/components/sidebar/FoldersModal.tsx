@@ -12,8 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { ScrollArea } from "@/components/ui/ScrollArea";
 import { SidebarFolderItem } from "./SidebarFolderItem";
 import { DeleteConfirmModal } from "@/components/ui/DeleteConfirmModal";
-import { useRenameFolder, useDeleteFolder } from "@/hooks/useFolders";
-import { useToast } from "@/hooks/useToast";
+import { useRenameFolder, useDeleteFolder, useToast } from "@/hooks";
 import { useAppStore } from "@/store/useAppStore";
 import type { Folder, Note } from "@/types";
 

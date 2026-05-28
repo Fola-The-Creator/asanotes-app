@@ -6,8 +6,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { SidebarTagItem } from "./SidebarTagItem";
 import { TagsModal } from "./TagsModal";
 import { DeleteConfirmModal } from "@/components/ui/DeleteConfirmModal";
-import { useRenameTag, useDeleteTag } from "@/hooks/useTags";
-import { useToast } from "@/hooks/useToast";
+import { useRenameTag, useDeleteTag, useToast } from "@/hooks";
 import { useAppStore } from "@/store/useAppStore";
 import type { Tag, Note } from "@/types";
 
@@ -64,7 +63,7 @@ export function TagsSection({ tags, notes }: TagsSectionProps) {
       <div className="flex items-center gap-1 px-3 py-1">
         <button
           onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-2 flex-1 text-xs font-medium text-grey-500 uppercase tracking-wider hover:text-grey-700"
+          className="flex items-center gap-2 flex-1 text-[10px] font-semibold text-grey-500 uppercase tracking-[0.08em] hover:text-grey-600 transition-colors"
         >
           <motion.div
             animate={{ rotate: expanded ? 90 : 0 }}
@@ -105,7 +104,7 @@ export function TagsSection({ tags, notes }: TagsSectionProps) {
               {hiddenCount > 0 && (
                 <button
                   onClick={() => setShowModal(true)}
-                  className="w-full px-3 py-1.5 text-xs text-grey-500 hover:text-grey-700 hover:bg-grey-100 rounded-lg transition-colors text-left flex items-center gap-3"
+                  className="w-full px-3 py-1.5 text-[12px] text-grey-500 hover:text-grey-700 hover:bg-grey-100/70 rounded-md transition-colors text-left flex items-center gap-3"
                 >
                   <MoreHorizontal className="w-3.5 h-3.5" />
                   <span>{hiddenCount} more</span>

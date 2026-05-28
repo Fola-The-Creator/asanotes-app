@@ -13,7 +13,6 @@ import {
   PinOff,
   Tag as TagIcon,
   CheckSquare,
-  Square,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -27,7 +26,7 @@ import { formatDistanceToNow } from "date-fns";
 import type { Note, Tag, ViewType } from "@/types";
 import { Button } from "@/components/ui/Button";
 import { useSelectionStore } from "@/store/useSelectionStore";
-import { useLongPress } from "@/hooks/useLongPress";
+import { useLongPress } from "@/hooks";
 
 interface NoteCardProps {
   note: Note;
@@ -91,340 +90,353 @@ export function NoteCard({
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.15, delay: index * 0.02 }}
-      {...(isNoteSelectionMode
-        ? { onClick: handleCardClick }
-        : longPressHandlers)}
+      exit={{ opacity: 0, scale: 0.97 }}
+      transition={{ type: "spring", damping: 32, stiffness: 380, delay: index * 0.018 }}
+      {...(isNoteSelectionMode ? { onClick: handleCardClick } : longPressHandlers)}
       className={cn(
-        "group relative p-3 rounded-lg cursor-pointer transition-colors mb-1",
+        "group relative rounded-md cursor-pointer mb-1.5 overflow-hidden",
+        // "transition-[box-shadow,border-color,transform,background-color] duration-200 ease-out",
+        "bg-card/70 border border-border",
         isMultiSelected
-          ? "bg-accent-500/10 border border-accent-500/40"
+          ? "border-accent-500/60 bg-accent-500/4"
           : isSelected
-            ? "bg-accent-500/7 border border-accent-500/30"
-            : "hover:bg-grey-100 border border-transparent",
+            ? "border-accent-500/22"
+            : "",
       )}
     >
-      {/* Checkbox overlay in selection mode */}
+
+      {/* Checkbox — selection mode */}
       <AnimatePresence>
         {isNoteSelectionMode && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.1 }}
-            className="absolute left-2 top-3.5"
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -8 }}
+            transition={{ type: "spring", damping: 28, stiffness: 400 }}
+            className="absolute left-3 top-3 z-10"
           >
-            {isMultiSelected ? (
-              <CheckSquare className="w-4 h-4 text-accent-500" />
-            ) : (
-              <Square className="w-4 h-4 text-grey-400" />
-            )}
+            <div
+              className={cn(
+                "w-[18px] h-[18px] rounded-[5px] border-2 flex items-center justify-center transition-colors duration-150",
+                isMultiSelected
+                  ? "bg-accent-500 border-accent-500"
+                  : "bg-transparent border-grey-400",
+              )}
+            >
+              <AnimatePresence>
+                {isMultiSelected && (
+                  <motion.svg
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0, opacity: 0 }}
+                    transition={{ type: "spring", damping: 24, stiffness: 500 }}
+                    className="w-2.5 h-2.5 text-white"
+                    viewBox="0 0 12 12"
+                    fill="none"
+                  >
+                    <path
+                      d="M2 6l3 3 5-5"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </motion.svg>
+                )}
+              </AnimatePresence>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Title row */}
-      <div
-        className={cn(
-          "flex items-center justify-between gap-2 mb-1",
-          isNoteSelectionMode && "pl-6",
-        )}
-      >
-        <h3
-          className={cn(
-            "font-medium text-sm line-clamp-1 break-words min-w-0",
-            isSelected ? "text-grey-900" : "text-grey-800",
-          )}
-        >
-          {note.title || "Untitled"}
-        </h3>
-        {note.isPinned && !isInTrash && (
-          <Pin className="w-3 h-3 shrink-0 text-accent-500 fill-accent-500/20" />
-        )}
-      </div>
-
-      {/* Preview */}
-      <p
-        className={cn(
-          "text-xs text-grey-600 line-clamp-2 mb-2 break-words",
-          isNoteSelectionMode && "pl-6",
-        )}
-      >
-        {note.preview}
-      </p>
-
-      {/* Tag pills */}
-      {noteTags.length > 0 && !isInTrash && (
+      {/* Content */}
+      <div className={cn("p-3", note.isPinned && !isInTrash && "pl-[18px]")}>
+        {/* Title row */}
         <div
           className={cn(
-            "flex items-center gap-1 flex-wrap mb-2",
-            isNoteSelectionMode && "pl-6",
+            "flex items-center justify-between gap-2 mb-1",
+            isNoteSelectionMode && "pl-7",
           )}
         >
-          {noteTags.slice(0, 2).map((tag) => (
-            <span
-              key={tag.id}
-              className="text-[10px] px-1.5 py-0.5 rounded-full bg-grey-200 text-grey-600"
+          <h3
+            className={cn(
+              "font-semibold text-[13px] leading-snug line-clamp-1 min-w-0",
+              isSelected ? "text-grey-900" : "text-grey-800",
+            )}
+          >
+            {note.title || "Untitled"}
+          </h3>
+
+          {/* Favorite star */}
+          {!isInTrash && !isNoteSelectionMode && !isInArchive && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleFavorite();
+              }}
+              className={cn(
+                "shrink-0 transition-all duration-150 rounded p-0.5",
+                note.isFavorite
+                  ? "opacity-100 text-accent-500"
+                  : "text-grey-500 hover:text-accent-500",
+              )}
             >
-              #{tag.name}
-            </span>
-          ))}
-          {noteTags.length > 2 && (
-            <span className="text-[10px] text-grey-500">
-              +{noteTags.length - 2}
-            </span>
+              <Star
+                className={cn(
+                  "w-3.5 h-3.5",
+                  note.isFavorite && "fill-accent-500",
+                )}
+              />
+            </button>
           )}
         </div>
-      )}
 
-      {/* Footer */}
-      <div
-        className={cn(
-          "flex items-center justify-between",
-          isNoteSelectionMode && "pl-6",
-        )}
-      >
-        <span className="text-[10px] text-grey-500">
-          {formatDistanceToNow(new Date(note.updatedAt), { addSuffix: true })}
-        </span>
+        {/* Preview */}
+        <p
+          className={cn(
+            "text-[12px] leading-[1.55] text-grey-500 line-clamp-2 mb-2",
+            isNoteSelectionMode && "pl-7",
+          )}
+        >
+          {note.preview || "No additional text"}
+        </p>
 
-        {/* Hide actions while in selection mode */}
-        {!isNoteSelectionMode && (
-          <div className="flex items-center gap-1">
-            {/* TRASH context */}
-            {isInTrash ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-6 h-6 text-grey-500 hover:text-grey-900"
-                  >
-                    <MoreHorizontal className="w-3 h-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44">
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onRestore();
-                    }}
-                  >
-                    <Undo2 className="w-4 h-4 mr-2" />
-                    Restore note
-                  </DropdownMenuItem>
-
-                  <DropdownMenuSeparator />
-
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      enterSelectionMode("note", note.id);
-                    }}
-                  >
-                    <CheckSquare className="w-4 h-4 mr-2" />
-                    Select
-                  </DropdownMenuItem>
-
-                  <DropdownMenuSeparator />
-
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onHardDelete();
-                    }}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Permanently delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <>
-                {/* Favorite star — active and archive views */}
-                {!isInArchive && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onToggleFavorite();
-                    }}
-                    className="w-6 h-6 text-grey-500 hover:text-accent-500"
-                  >
-                    <Star
-                      className={cn(
-                        "w-3 h-3",
-                        note.isFavorite && "fill-accent-500 text-accent-500",
-                      )}
-                    />
-                  </Button>
-                )}
-
-                {/* ARCHIVE context */}
-                {isInArchive ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => e.stopPropagation()}
-                        className="w-6 h-6 text-grey-500 hover:text-grey-900"
-                      >
-                        <MoreHorizontal className="w-3 h-3" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-44">
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onUnarchive();
-                        }}
-                      >
-                        <ArchiveRestore className="w-4 h-4 mr-2" />
-                        Unarchive
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEditTags();
-                        }}
-                      >
-                        <TagIcon className="w-4 h-4 mr-2" />
-                        {note.tags.length > 0 ? "Edit tags" : "Add tags"}
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onMoveTo();
-                        }}
-                      >
-                        <FolderInput className="w-4 h-4 mr-2" />
-                        Move to folder
-                      </DropdownMenuItem>
-
-                      <DropdownMenuSeparator />
-
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          enterSelectionMode("note", note.id);
-                        }}
-                      >
-                        <CheckSquare className="w-4 h-4 mr-2" />
-                        Select
-                      </DropdownMenuItem>
-
-                      <DropdownMenuSeparator />
-
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDelete();
-                        }}
-                        className="text-destructive focus:text-destructive"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Move to trash
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                ) : (
-                  /* ACTIVE context */
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={(e) => e.stopPropagation()}
-                        className="w-6 h-6 text-grey-500 hover:text-grey-900"
-                      >
-                        <MoreHorizontal className="w-3 h-3" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-44">
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onTogglePin();
-                        }}
-                      >
-                        {note.isPinned ? (
-                          <PinOff className="w-4 h-4 mr-2" />
-                        ) : (
-                          <Pin className="w-4 h-4 mr-2" />
-                        )}
-                        {note.isPinned ? "Unpin note" : "Pin note"}
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onEditTags();
-                        }}
-                      >
-                        <TagIcon className="w-4 h-4 mr-2" />
-                        {note.tags.length > 0 ? "Edit tags" : "Add tags"}
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onMoveTo();
-                        }}
-                      >
-                        <FolderInput className="w-4 h-4 mr-2" />
-                        Move to folder
-                      </DropdownMenuItem>
-
-                      <DropdownMenuSeparator />
-
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          enterSelectionMode("note", note.id);
-                        }}
-                      >
-                        <CheckSquare className="w-4 h-4 mr-2" />
-                        Select
-                      </DropdownMenuItem>
-
-                      <DropdownMenuSeparator />
-
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onArchive();
-                        }}
-                      >
-                        <Archive className="w-4 h-4 mr-2" />
-                        Archive
-                      </DropdownMenuItem>
-
-                      <DropdownMenuItem
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDelete();
-                        }}
-                        className="text-destructive focus:text-destructive"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Move to trash
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-              </>
+        {/* Tag pills */}
+        {noteTags.length > 0 && !isInTrash && (
+          <div
+            className={cn(
+              "flex items-center gap-1 flex-wrap mb-2",
+              isNoteSelectionMode && "pl-7",
+            )}
+          >
+            {noteTags.slice(0, 2).map((tag) => (
+              <span key={tag.id} className="tag-pill">
+                #{tag.name}
+              </span>
+            ))}
+            {noteTags.length > 2 && (
+              <span className="text-[11px] text-grey-500">
+                +{noteTags.length - 2}
+              </span>
             )}
           </div>
         )}
+
+        {/* Footer */}
+        <div
+          className={cn(
+            "flex items-center justify-between",
+            isNoteSelectionMode && "pl-7",
+          )}
+        >
+          <span className="text-[11px] text-grey-500 tabular-nums">
+            {formatDistanceToNow(new Date(note.updatedAt), { addSuffix: true })}
+          </span>
+
+          {/* Actions */}
+          {!isNoteSelectionMode && (
+            <div
+              className={cn(
+                "flex items-center gap-0.5 duration-150",
+              )}
+            >
+              {/* TRASH context */}
+              {isInTrash ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={(e) => e.stopPropagation()}
+                      className="w-6 h-6 rounded-xs text-grey-500 hover:text-grey-800"
+                    >
+                      <MoreHorizontal className="w-3.5 h-3.5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-44">
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRestore();
+                      }}
+                    >
+                      <Undo2 className="w-4 h-4 mr-2" />
+                      Restore note
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        enterSelectionMode("note", note.id);
+                      }}
+                    >
+                      <CheckSquare className="w-4 h-4 mr-2" />
+                      Select
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onHardDelete();
+                      }}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Permanently delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              ) : (
+                <>
+                  {/* ARCHIVE context */}
+                  {isInArchive ? (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-6 h-6 rounded-xs text-grey-500 hover:text-grey-800"
+                        >
+                          <MoreHorizontal className="w-3.5 h-3.5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-44">
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onUnarchive();
+                          }}
+                        >
+                          <ArchiveRestore className="w-4 h-4 mr-2" />
+                          Unarchive
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditTags();
+                          }}
+                        >
+                          <TagIcon className="w-4 h-4 mr-2" />
+                          {note.tags.length > 0 ? "Edit tags" : "Add tags"}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onMoveTo();
+                          }}
+                        >
+                          <FolderInput className="w-4 h-4 mr-2" />
+                          Move to folder
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            enterSelectionMode("note", note.id);
+                          }}
+                        >
+                          <CheckSquare className="w-4 h-4 mr-2" />
+                          Select
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete();
+                          }}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Move to trash
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  ) : (
+                    /* ACTIVE context */
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-6 h-6 rounded-xs text-grey-500 hover:text-grey-800"
+                        >
+                          <MoreHorizontal className="w-3.5 h-3.5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-44">
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onTogglePin();
+                          }}
+                        >
+                          {note.isPinned ? (
+                            <PinOff className="w-4 h-4 mr-2" />
+                          ) : (
+                            <Pin className="w-4 h-4 mr-2" />
+                          )}
+                          {note.isPinned ? "Unpin note" : "Pin note"}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditTags();
+                          }}
+                        >
+                          <TagIcon className="w-4 h-4 mr-2" />
+                          {note.tags.length > 0 ? "Edit tags" : "Add tags"}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onMoveTo();
+                          }}
+                        >
+                          <FolderInput className="w-4 h-4 mr-2" />
+                          Move to folder
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            enterSelectionMode("note", note.id);
+                          }}
+                        >
+                          <CheckSquare className="w-4 h-4 mr-2" />
+                          Select
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onArchive();
+                          }}
+                        >
+                          <Archive className="w-4 h-4 mr-2" />
+                          Archive
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete();
+                          }}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Move to trash
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </motion.div>
   );

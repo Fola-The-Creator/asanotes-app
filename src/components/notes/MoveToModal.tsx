@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from "@/components/ui/Dialog";
 import { ScrollArea } from "@/components/ui/ScrollArea";
-import { useUpdateNote } from "@/hooks/useNotes";
+import { useUpdateNote } from "@/hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Note as NoteType } from "@/types";
 import { cn } from "@/lib/utils";

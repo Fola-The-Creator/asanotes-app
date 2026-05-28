@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useTheme } from "next-themes";
 import { Sun, Moon, Monitor, Check } from "lucide-react";
-import { useSettings } from "@/hooks/useSettings";
+import { useSettings } from "@/hooks";
 import type { ThemeMode } from "@/types";
 
 const THEME_OPTIONS: {

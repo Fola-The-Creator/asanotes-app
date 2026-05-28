@@ -173,7 +173,7 @@ export function EditorToolbar({ editor }: EditorToolbarProps) {
   ];
 
   return (
-    <div className="flex items-center gap-1 p-2 border-b border-grey-200 bg-grey-50/50 overflow-x-auto shrink-0">
+    <div className="flex items-center gap-0.5 px-3 py-1.5 border-t border-b border-grey-200/50 bg-grey-50/30 overflow-x-auto shrink-0 scrollbar-none">
       <TooltipProvider delayDuration={300}>
         {/* History */}
         <ButtonGroup buttons={history} />

@@ -4,12 +4,13 @@ import { motion } from "motion/react";
 import { Sidebar } from "@/components/sidebar/Sidebar";
 import { MobileSidebar } from "@/components/sidebar/MobileSidebar";
 import { MobileHeader } from "@/components/layout/MobileHeader";
+import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { NotesList } from "@/components/notes/NotesList";
 import { NoteEditor } from "@/components/editor/NoteEditor";
 import { CommandPalette } from "@/components/command-palette/CommandPalette";
 import { SettingsModal } from "@/components/settings/SettingsModal";
-import { useAppStore, useSelectedNote } from "@/store/useAppStore";
-import { useNotes } from "@/hooks/useNotes";
+import { useAppStore } from "@/store/useAppStore";
+import { useNotes, useSelectedNote } from "@/hooks";
 
 export default function DashboardLayout({
   children,
@@ -22,7 +23,7 @@ export default function DashboardLayout({
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-grey-0">
-      {/* Mobile Header (hidden on desktop) */}
+      {/* Mobile Header — hidden on desktop */}
       <MobileHeader
         title={mobileView === "editor" ? selectedNote?.title : undefined}
       />
@@ -40,19 +41,19 @@ export default function DashboardLayout({
         {/* Desktop: Notes List */}
         <motion.div
           initial={false}
-          animate={{ width: sidebarCollapsed ? 320 : 300 }}
-          transition={{ duration: 0.2, ease: "easeInOut" }}
+          animate={{ width: sidebarCollapsed ? 400 : 350 }}
+          transition={{ type: "spring", damping: 30, stiffness: 320 }}
           className="hidden lg:flex h-full shrink-0"
         >
           <NotesList />
         </motion.div>
 
-        {/* Desktop: Editor Area — hidden on mobile */}
+        {/* Desktop: Editor Area */}
         <div className="hidden lg:flex flex-1 h-full overflow-hidden">
           <NoteEditor />
         </div>
 
-        {/* Mobile: Single-view panel with animated transitions */}
+        {/* Mobile: Single-view animated panel */}
         <div className="lg:hidden flex-1 overflow-hidden relative">
           {mobileView === "list" ? (
             <motion.div
@@ -60,8 +61,8 @@ export default function DashboardLayout({
               initial={{ x: "-100%", opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: "-100%", opacity: 0 }}
-              transition={{ type: "spring", damping: 30, stiffness: 320 }}
-              className="absolute inset-0"
+              transition={{ type: "spring", damping: 35, stiffness: 380 }}
+              className="absolute inset-0 pb-[72px]"
             >
               <NotesList />
             </motion.div>
@@ -71,7 +72,7 @@ export default function DashboardLayout({
               initial={{ x: "100%", opacity: 0 }}
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: "100%", opacity: 0 }}
-              transition={{ type: "spring", damping: 30, stiffness: 320 }}
+              transition={{ type: "spring", damping: 35, stiffness: 380 }}
               className="absolute inset-0"
             >
               <NoteEditor />
@@ -79,6 +80,9 @@ export default function DashboardLayout({
           )}
         </div>
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav />
 
       {/* Command Palette */}
       <CommandPalette />

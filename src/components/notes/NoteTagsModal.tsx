@@ -10,8 +10,7 @@ import {
 } from "@/components/ui/Dialog";
 import { Button } from "@/components/ui/Button";
 import { ScrollArea } from "@/components/ui/ScrollArea";
-import { useAssignNoteTags, useCreateTag } from "@/hooks/useTags";
-import { useToast } from "@/hooks/useToast";
+import { useAssignNoteTags, useCreateTag, useToast } from "@/hooks";
 import { cn } from "@/lib/utils";
 import type { Note, Tag } from "@/types";
 

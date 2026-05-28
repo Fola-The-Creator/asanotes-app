@@ -32,14 +32,14 @@ export function ToolbarBtn({
           onClick={action}
           disabled={disabled}
           className={cn(
-            "w-8 h-8 transition-colors",
+            "w-7 h-7 rounded-xs transition-colors",
             isActive
-              ? "bg-grey-200 text-accent-500"
-              : "text-grey-600 hover:text-grey-900 hover:bg-grey-100",
+              ? "bg-grey-200/80 text-grey-900"
+              : "text-grey-500 hover:text-grey-800 hover:bg-grey-100/80",
             disabled && "opacity-40 cursor-not-allowed pointer-events-none",
           )}
         >
-          <Icon className="w-4 h-4" />
+          <Icon className="w-3.5 h-3.5" />
         </Button>
       </TooltipTrigger>
       <TooltipContent>

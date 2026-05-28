@@ -1,7 +1,7 @@
 "use client";
 
 import { Zap, FilePlus, Save, Activity } from "lucide-react";
-import { useSettings } from "@/hooks/useSettings";
+import { useSettings } from "@/hooks";
 import { SettingToggleRow } from "@/components/settings/SettingToggleRow";
 
 export function BehaviorSection() {

@@ -12,8 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { ScrollArea } from "@/components/ui/ScrollArea";
 import { SidebarTagItem } from "./SidebarTagItem";
 import { DeleteConfirmModal } from "@/components/ui/DeleteConfirmModal";
-import { useRenameTag, useDeleteTag } from "@/hooks/useTags";
-import { useToast } from "@/hooks/useToast";
+import { useRenameTag, useDeleteTag, useToast } from "@/hooks";
 import { useAppStore } from "@/store/useAppStore";
 import type { Tag, Note } from "@/types";
 

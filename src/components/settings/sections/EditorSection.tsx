@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { Type } from "lucide-react";
-import { useSettings } from "@/hooks/useSettings";
+import { useSettings } from "@/hooks";
 import { EDITOR_FONT_SIZE_OPTIONS } from "@/constants";
 
 export function EditorSection() {

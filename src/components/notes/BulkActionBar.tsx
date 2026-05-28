@@ -6,11 +6,12 @@ import {
   FolderInput,
   Tag as TagIcon,
   X,
-  CheckSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import { useAppStore } from "@/store/useAppStore";
 import { useSelectionStore } from "@/store/useSelectionStore";
+import type React from "react";
 
 interface BulkActionBarProps {
   allIds: string[];
@@ -19,6 +20,7 @@ interface BulkActionBarProps {
   onEditTags: (ids: string[]) => void;
 }
 
+/** Floating glass action bar at the bottom of the notes list panel */
 export function BulkActionBar({
   allIds,
   onDelete,
@@ -32,6 +34,7 @@ export function BulkActionBar({
     exitSelectionMode,
     selectAll,
   } = useSelectionStore();
+  const { viewType } = useAppStore();
 
   const isVisible = selectionMode && selectionTarget === "note";
   const count = selectedIds.size;
@@ -39,82 +42,85 @@ export function BulkActionBar({
 
   const allSelected =
     allIds.length > 0 && allIds.every((id) => selectedIds.has(id));
+  const noneSelected = count === 0;
+  const isTrash = viewType === "trash";
 
   return (
     <AnimatePresence>
       {isVisible && (
         <motion.div
-          initial={{ y: -80, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -80, opacity: 0 }}
-          transition={{ type: "spring", damping: 26, stiffness: 300 }}
-          className="absolute top-0 inset-x-0 z-20 px-3 py-5.5 bg-grey-50 border-b border-grey-200 flex flex-col gap-2"
+          initial={{ y: 80, opacity: 0, scale: 0.96 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          exit={{ y: 80, opacity: 0, scale: 0.96 }}
+          transition={{ type: "spring", damping: 28, stiffness: 350 }}
+          className="absolute max-lg:-bottom-4 bottom-6 left-3 right-3 z-20"
         >
-          {/* Top row: count + select all + dismiss */}
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-grey-700">
-              {count} {count === 1 ? "note" : "notes"} selected
-            </span>
-            <div className="flex items-center gap-1">
-              <button
-                onClick={() =>
-                  allSelected ? selectAll([]) : selectAll(allIds)
-                }
-                className={cn(
-                  "text-xs px-2 py-1 rounded-md transition-colors",
-                  allSelected
-                    ? "text-accent-500 bg-accent-500/10"
-                    : "text-grey-600 hover:bg-grey-100",
-                )}
-              >
-                {allSelected ? "Deselect all" : "Select all"}
-              </button>
-              <Button
-                variant="ghost"
-                size="icon"
+          <div className="glass backdrop-blur-xl rounded-2xl shadow-lg border border-grey-200/40">
+            {/* Top row: Selection info + dismiss */}
+            <div className="flex items-center justify-between gap-3 px-4 pt-3 pb-2">
+              <div className="flex items-center gap-3 min-w-0">
+                <span className="text-[13px] font-semibold text-grey-800 tabular-nums whitespace-nowrap">
+                  {count} {count === 1 ? "note" : "notes"} selected
+                </span>
+
+                <button
+                  onClick={() =>
+                    allSelected ? selectAll([]) : selectAll(allIds)
+                  }
+                  className="text-[12px] text-accent-500 hover:text-accent-400 font-medium whitespace-nowrap transition-colors"
+                >
+                  {allSelected ? "Deselect all" : noneSelected ? "Select all" : "Select all"}
+                </button>
+              </div>
+
+              {/* Dismiss button */}
+              <motion.button
+                whileTap={{ scale: 0.9 }}
                 onClick={exitSelectionMode}
-                className="w-7 h-7 text-grey-500 hover:text-grey-900"
+                className="w-7 h-7 rounded-full flex items-center justify-center text-grey-400 hover:bg-grey-200/70 hover:text-grey-700 transition-colors shrink-0"
                 aria-label="Cancel selection"
               >
                 <X className="w-4 h-4" />
-              </Button>
+              </motion.button>
             </div>
-          </div>
 
-          {/* Action buttons */}
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onEditTags(ids)}
-              disabled={count === 0}
-              className="flex-1 justify-center gap-1.5 border border-grey-300 text-grey-600 hover:text-grey-900 hover:bg-grey-100"
-            >
-              <TagIcon className="w-4 h-4" />
-              <span className="text-xs">Tags</span>
-            </Button>
+            {/* Separator */}
+            <div className="h-px bg-grey-200/50 mx-3" />
 
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onMoveTo(ids)}
-              disabled={count === 0}
-              className="flex-1 justify-center gap-1.5 border border-grey-300 text-grey-600 hover:text-grey-900 hover:bg-grey-100"
-            >
-              <FolderInput className="w-4 h-4" />
-              <span className="text-xs">Move</span>
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onDelete(ids)}
-              disabled={count === 0}
-              className="flex-1 justify-center gap-1.5 border border-grey-300 text-destructive hover:text-destructive hover:bg-destructive/10"
-            >
-              <Trash2 className="w-4 h-4" />
-              <span className="text-xs">Delete</span>
-            </Button>
+            {/* Bottom row: Action buttons — wraps gracefully */}
+            <div className="flex flex-wrap items-center gap-1.5 px-3 py-2.5">
+              {isTrash ? (
+                <BulkActionButton
+                  icon={Trash2}
+                  label="Permanently delete"
+                  onClick={() => onDelete(ids)}
+                  disabled={noneSelected}
+                  destructive
+                />
+              ) : (
+                <>
+                  <BulkActionButton
+                    icon={TagIcon}
+                    label="Tags"
+                    onClick={() => onEditTags(ids)}
+                    disabled={noneSelected}
+                  />
+                  <BulkActionButton
+                    icon={FolderInput}
+                    label="Move to"
+                    onClick={() => onMoveTo(ids)}
+                    disabled={noneSelected}
+                  />
+                  <BulkActionButton
+                    icon={Trash2}
+                    label="Delete"
+                    onClick={() => onDelete(ids)}
+                    disabled={noneSelected}
+                    destructive
+                  />
+                </>
+              )}
+            </div>
           </div>
         </motion.div>
       )}
@@ -122,33 +128,37 @@ export function BulkActionBar({
   );
 }
 
-// Standalone icon button used inside the notes list header to enter selection mode
-export function SelectionToggleButton() {
-  const {
-    selectionMode,
-    selectionTarget,
-    enterSelectionMode,
-    exitSelectionMode,
-  } = useSelectionStore();
+interface BulkActionButtonProps {
+  icon: React.ElementType;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  destructive?: boolean;
+}
 
-  const active = selectionMode && selectionTarget === "note";
-
+function BulkActionButton({
+  icon: Icon,
+  label,
+  onClick,
+  disabled,
+  destructive,
+}: BulkActionButtonProps) {
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() =>
-        active ? exitSelectionMode() : enterSelectionMode("note")
-      }
+    <motion.button
+      whileTap={{ scale: 0.95 }}
+      onClick={onClick}
+      disabled={disabled}
       className={cn(
-        "w-8 h-8",
-        active
-          ? "text-accent-500 bg-accent-500/10"
-          : "text-grey-600 hover:text-grey-900",
+        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg",
+        "text-[12px] font-medium transition-colors disabled:opacity-35 disabled:pointer-events-none",
+        destructive
+          ? "text-destructive hover:bg-destructive/10"
+          : "text-grey-700 hover:bg-grey-200/60 hover:text-grey-900",
       )}
-      aria-label={active ? "Cancel selection" : "Select notes"}
     >
-      <CheckSquare className="w-4 h-4" />
-    </Button>
+      <Icon className="w-3.5 h-3.5 shrink-0" />
+      <span className="whitespace-nowrap">{label}</span>
+    </motion.button>
   );
 }
+

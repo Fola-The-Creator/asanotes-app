@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from "motion/react";
-import { Cloud, CloudOff, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { cn } from "@/lib/utils";
@@ -43,8 +43,9 @@ export function EditorHeader({
   ...menuHandlers
 }: EditorHeaderProps) {
   return (
-    <div className="flex items-center gap-6 justify-between p-4 border-b border-grey-200">
-      <div className="flex items-center gap-3 flex-1">
+    <div className="flex items-center gap-3 px-6 pt-5 pb-2 shrink-0">
+      {/* Title + save status */}
+      <div className="flex-1 min-w-0">
         <Input
           value={title}
           onChange={(e) => !isInTrash && onTitleChange(e.target.value)}
@@ -52,45 +53,58 @@ export function EditorHeader({
           placeholder="Untitled"
           readOnly={isInTrash}
           className={cn(
-            "text-xl! font-semibold border-none bg-transparent! p-0 h-auto focus-visible:ring-0 text-grey-900 placeholder:text-grey-400 shadow-none",
-            isInTrash && "cursor-default select-text"
+            "text-[22px]! font-bold tracking-[-0.02em] leading-tight",
+            "border-none bg-transparent! p-0 h-auto",
+            "focus-visible:ring-0 shadow-none",
+            "text-grey-900 placeholder:text-grey-300",
+            isInTrash && "cursor-default select-text opacity-70",
           )}
         />
+
+        {/* Save status — below title, very subtle */}
+        {/* {!isInTrash && (
+          <div className="h-5 mt-0.5">
+            <AnimatePresence mode="wait">
+              {isSaving ? (
+                <motion.span
+                  key="saving"
+                  initial={{ opacity: 0, y: 2 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -2 }}
+                  transition={{ duration: 0.15 }}
+                  className="text-[11px] text-grey-400"
+                >
+                  Saving…
+                </motion.span>
+              ) : lastSaved ? (
+                <motion.span
+                  key="saved"
+                  initial={{ opacity: 0, y: 2 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -2 }}
+                  transition={{ duration: 0.15 }}
+                  className="text-[11px] text-grey-400"
+                >
+                  Saved
+                </motion.span>
+              ) : null}
+            </AnimatePresence>
+          </div>
+        )} */}
       </div>
 
-      <div className="flex items-center gap-2">
-        {!isInTrash && (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={isSaving ? "saving" : "saved"}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex items-center gap-1.5 text-xs text-grey-500"
-            >
-              {isSaving ? (
-                <>
-                  <CloudOff className="w-3.5 h-3.5" />
-                  <span>Saving...</span>
-                </>
-              ) : lastSaved ? (
-                <>
-                  <Cloud className="w-3.5 h-3.5 text-green-500" />
-                  <span>Saved</span>
-                </>
-              ) : null}
-            </motion.div>
-          </AnimatePresence>
-        )}
-
+      {/* Actions */}
+      <div className="flex items-center gap-0.5 shrink-0">
         {!isInTrash && (
           <Button
             variant="ghost"
             size="icon"
             onClick={onToggleFavorite}
             className={cn(
-              "w-8 h-8",
-              isFavorite ? "text-accent-500" : "text-grey-500 hover:text-grey-900"
+              "w-8 h-8 rounded-sm",
+              isFavorite
+                ? "text-accent-500"
+                : "text-grey-400 hover:text-grey-700 hover:bg-grey-100",
             )}
           >
             <Star className={cn("w-4 h-4", isFavorite && "fill-accent-500")} />

@@ -8,19 +8,13 @@ import {
   Trash2,
   Search,
   Plus,
-  Settings,
   PanelLeftClose,
   PanelLeft,
   X,
 } from "lucide-react";
-import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/store/useAppStore";
-import { useFolders } from "@/hooks/useFolders";
-import { useTags } from "@/hooks/useTags";
-import { useNotes } from "@/hooks/useNotes";
-import { useCreateNote } from "@/hooks/useNotes";
-import { useUser } from "@/hooks/useUser";
+import { useFolders, useTags, useNotes, useCreateNote } from "@/hooks";
 import { Button } from "@/components/ui/Button";
 import { ScrollArea } from "@/components/ui/ScrollArea";
 import {
@@ -32,6 +26,7 @@ import {
 import Logo from "../icons/Logo";
 import { FoldersSection } from "./FoldersSection";
 import { TagsSection } from "./TagsSection";
+import { ProfileMenu } from "./ProfileMenu";
 
 export function Sidebar() {
   const {
@@ -42,13 +37,11 @@ export function Sidebar() {
     toggleSidebar,
     toggleCommandPalette,
     closeMobileMenu,
-    openSettings,
   } = useAppStore();
 
   const { data: folders = [] } = useFolders();
   const { data: tags = [] } = useTags();
   const { data: notes = [] } = useNotes();
-  const { data: user } = useUser();
   const createNoteMut = useCreateNote();
 
   const navItems = [
@@ -70,11 +63,11 @@ export function Sidebar() {
           damping: 28,
           stiffness: 320,
         }}
-        className="flex flex-col h-full bg-grey-50 border-r border-grey-200"
+        className="flex flex-col h-full bg-grey-50 border-r border-grey-200/60"
       >
         {/* Header */}
         <div
-          className={`flex items-center ${sidebarCollapsed ? "justify-center" : "justify-between"} p-3 border-b border-grey-200`}
+          className={`flex items-center ${sidebarCollapsed ? "justify-center" : "justify-between"} p-3 border-b border-grey-200/60`}
         >
           <AnimatePresence mode="wait">
             {!sidebarCollapsed && (
@@ -163,7 +156,8 @@ export function Sidebar() {
                   })
                 }
                 className={cn(
-                  "w-full justify-start bg-accent-500 hover:bg-accent-600 text-white",
+                  "w-full justify-start bg-accent-500 hover:bg-accent-400 text-white font-medium",
+                  "transition-[box-shadow,background-color] duration-200",
                   sidebarCollapsed ? "px-2 justify-center" : "px-3",
                 )}
               >
@@ -186,10 +180,10 @@ export function Sidebar() {
                   <button
                     onClick={() => setViewType(item.id as typeof viewType)}
                     className={cn(
-                      "w-full flex items-center justify-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors",
+                      "w-full flex items-center justify-center gap-3 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150",
                       viewType === item.id
-                        ? "bg-grey-200 text-grey-900"
-                        : "text-grey-600 hover:bg-grey-100 hover:text-grey-900",
+                        ? "bg-grey-200/80 text-grey-900 shadow-inset"
+                        : "text-grey-500 hover:bg-grey-100/70 hover:text-grey-800",
                     )}
                   >
                     <item.icon className="w-4 h-4 shrink-0" />
@@ -214,60 +208,9 @@ export function Sidebar() {
           </div>
         </ScrollArea>
 
-        {/* Footer */}
-        <div className="border-t border-grey-200 p-3">
-          <div
-            className={cn(
-              "flex flex-col items-center gap-1",
-              sidebarCollapsed && "flex-col",
-            )}
-          >
-            {/* Settings */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={openSettings}
-                  className="w-full justify-start p-3 font-normal text-grey-600 hover:text-grey-900 hover:bg-grey-200"
-                >
-                  <Settings className="w-4 h-4" />
-                  {!sidebarCollapsed && <span>Settings</span>}
-                </Button>
-              </TooltipTrigger>
-              {sidebarCollapsed && (
-                <TooltipContent side="right">Settings</TooltipContent>
-              )}
-            </Tooltip>
-
-            {/* Account */}
-            <div
-              className={`${sidebarCollapsed && "py-3! p-0! justify-center"} p-3 w-full flex-1 flex items-center gap-2 min-w-0`}
-            >
-              {/*eslint-disable-next-line @next/next/no-img-element*/}
-              {user?.avatar ? (
-                <img
-                  src={user.avatar}
-                  alt={user?.name || "User"}
-                  className="w-8 h-8 rounded-full object-cover shrink-0"
-                />
-              ) : (
-                <div className="w-8 h-8 rounded-full shrink-0 bg-grey-200 flex items-center justify-center text-xs font-medium text-grey-500">
-                  {user?.name?.charAt(0).toUpperCase() || "U"}
-                </div>
-              )}
-              {!sidebarCollapsed && (
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-grey-900 truncate">
-                    {user?.name || "Loading..."}
-                  </p>
-                  <p className="text-xs text-grey-500 truncate">
-                    {user?.email || ""}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
+        {/* Footer — Profile menu */}
+        <div className="border-t border-grey-200/60 p-2">
+          <ProfileMenu collapsed={sidebarCollapsed} />
         </div>
       </motion.aside>
     </TooltipProvider>

@@ -11,8 +11,8 @@ import {
   useCreateFolder,
   useRenameFolder,
   useDeleteFolder,
-} from "@/hooks/useFolders";
-import { useToast } from "@/hooks/useToast";
+  useToast,
+} from "@/hooks";
 import { useAppStore } from "@/store/useAppStore";
 import type { Folder, Note } from "@/types";
 
@@ -107,7 +107,7 @@ export function FoldersSection({ folders, notes }: FoldersSectionProps) {
       <div className="flex items-center gap-1 pl-3 pr-2 py-1">
         <button
           onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-2 flex-1 text-xs font-medium text-grey-500 uppercase tracking-wider hover:text-grey-700"
+          className="flex items-center gap-2 flex-1 text-[10px] font-semibold text-grey-500 uppercase tracking-[0.08em] hover:text-grey-600 transition-colors"
         >
           <motion.div
             animate={{ rotate: expanded ? 90 : 0 }}
@@ -124,7 +124,7 @@ export function FoldersSection({ folders, notes }: FoldersSectionProps) {
             setExpanded(true);
             setShowAddInput(true);
           }}
-          className="w-5 h-5 text-grey-400 hover:text-grey-700"
+          className="w-5 h-5 text-grey-500 hover:text-grey-600"
           aria-label="Add folder"
         >
           <Plus className="w-3.5 h-3.5" />
@@ -173,7 +173,7 @@ export function FoldersSection({ folders, notes }: FoldersSectionProps) {
               {hiddenCount > 0 && (
                 <button
                   onClick={() => setShowModal(true)}
-                  className="w-full px-3 py-1.5 text-xs text-grey-500 hover:text-grey-700 hover:bg-grey-100 rounded-lg transition-colors text-left flex items-center gap-3"
+                  className="w-full px-3 py-1.5 text-[12px] text-grey-500 hover:text-grey-700 hover:bg-grey-100/70 rounded-md transition-colors text-left flex items-center gap-3"
                 >
                   <MoreHorizontal className="w-3.5 h-3.5" />
                   <span>{hiddenCount} more</span>

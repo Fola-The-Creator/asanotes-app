@@ -35,8 +35,8 @@ export function CommandPalette() {
         showCloseButton={false}
         className="
           max-w-xl w-[85%] p-0 gap-0 bg-grey-50 border-grey-200 overflow-hidden flex flex-col
-          top-4 translate-y-0 max-h-[calc(100dvh-2rem)]
-          sm:top-[50%] sm:-translate-y-1/2 sm:max-h-[75vh]
+          top-[10%] translate-y-0 max-h-[600px]
+          sm:top-[50%] sm:-translate-y-1/2 sm:max-h-[600px]
         "
       >
         <VisuallyHidden>

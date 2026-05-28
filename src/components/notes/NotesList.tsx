@@ -4,15 +4,14 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Search,
-  SortAsc,
-  Calendar,
-  Clock,
   FileText,
   ChevronDown,
   AlertTriangle,
+  Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useAppStore, useFilteredNotes } from "@/store/useAppStore";
+import { useAppStore } from "@/store/useAppStore";
+import { useSettingsStore } from "@/store/useSettingsStore";
 import {
   useNotes,
   useToggleFavorite,
@@ -22,9 +21,11 @@ import {
   useRestoreNote,
   useUnarchiveNote,
   useHardDeleteNote,
-} from "@/hooks/useNotes";
-import { useFolders } from "@/hooks/useFolders";
-import { useTags } from "@/hooks/useTags";
+  useFolders,
+  useTags,
+  useIsMobile,
+  useFilteredNotes,
+} from "@/hooks";
 import { useSelectionStore } from "@/store/useSelectionStore";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -40,28 +41,9 @@ import type { SortOption, ViewType } from "@/types";
 import { NoteCard } from "./NoteCard";
 import { NoteTagsModal } from "./NoteTagsModal";
 import { MoveToModal } from "./MoveToModal";
-import { BulkActionBar, SelectionToggleButton } from "./BulkActionBar";
-import { useIsMobile } from "@/hooks/useMobile";
-import { PINNED_SECTION_VIEWS } from "@/constants";
-
-export const viewTitles: Record<ViewType, string> = {
-  all: "All Notes",
-  favorites: "Favorites",
-  archive: "Archive",
-  trash: "Trash",
-  folder: "Folder",
-  tag: "Tag",
-};
-
-export const sortOptions: {
-  value: SortOption;
-  label: string;
-  icon: React.ElementType;
-}[] = [
-  { value: "recent", label: "Recently Updated", icon: Clock },
-  { value: "created", label: "Date Created", icon: Calendar },
-  { value: "alphabetical", label: "Alphabetical", icon: SortAsc },
-];
+import { BulkActionBar } from "./BulkActionBar";
+import { SelectionToggleButton } from "./SelectionToggleButton";
+import { PINNED_SECTION_VIEWS, viewTitles, sortOptions, EXPIRY_LABELS } from "@/constants";
 
 export function NotesList() {
   const isMobile = useIsMobile();
@@ -77,6 +59,8 @@ export function NotesList() {
     setSortOption,
     setSearchQuery,
   } = useAppStore();
+
+  const trashExpiryDays = useSettingsStore((s) => s.settings.trashExpiryDays);
 
   const { data: notes = [], isLoading } = useNotes();
   const { data: folders = [] } = useFolders();
@@ -157,7 +141,11 @@ export function NotesList() {
   };
 
   const confirmBulkDelete = () => {
-    bulkDeleteConfirmIds.forEach((id) => deleteNote.mutate(id));
+    if (viewType === "trash") {
+      bulkDeleteConfirmIds.forEach((id) => hardDeleteNote.mutate(id));
+    } else {
+      bulkDeleteConfirmIds.forEach((id) => deleteNote.mutate(id));
+    }
     setBulkDeleteConfirmIds([]);
     exitSelectionMode();
   };
@@ -171,126 +159,133 @@ export function NotesList() {
   };
 
   return (
-    <div className="flex flex-col w-full h-full bg-grey-0 border-r border-grey-200 relative">
+    <div className="flex flex-col w-full h-full bg-grey-0 border-r border-grey-200/60 relative">
       {/* Header */}
-      <div className="p-4 border-b border-grey-200">
+      <div className="px-3 pt-4 pb-3 border-b border-grey-200/60 shrink-0">
+        {/* View title row */}
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-grey-900">
+          <h2 className="text-[15px] font-semibold text-grey-900 tracking-[-0.01em]">
             {getViewTitle()}
           </h2>
-          <div className="flex items-center gap-1">
-            {/* <SelectionToggleButton /> */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-grey-600 hover:text-grey-900"
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-7 h-7 text-grey-400 hover:text-grey-700 hover:bg-grey-100/80"
+              >
+                {(() => {
+                  const Icon = sortOptions.find((s) => s.value === sortOption)?.icon ?? Clock;
+                  return <Icon className="w-3.5 h-3.5" />;
+                })()}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {sortOptions.map((option) => (
+                <DropdownMenuItem
+                  key={option.value}
+                  onClick={() => setSortOption(option.value)}
+                  className={cn(sortOption === option.value && "bg-grey-100")}
                 >
-                  {sortOptions.find((s) => s.value === sortOption)?.icon && (
-                    <span className="mr-1">
-                      {(() => {
-                        const Icon = sortOptions.find(
-                          (s) => s.value === sortOption,
-                        )?.icon;
-                        return Icon ? <Icon className="w-4 h-4" /> : null;
-                      })()}
-                    </span>
-                  )}
-                  Sort
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                {sortOptions.map((option) => (
-                  <DropdownMenuItem
-                    key={option.value}
-                    onClick={() => setSortOption(option.value)}
-                    className={cn(sortOption === option.value && "bg-grey-100")}
-                  >
-                    <option.icon className="w-4 h-4 mr-2" />
-                    {option.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+                  <option.icon className="w-4 h-4 mr-2" />
+                  {option.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-grey-500" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-grey-400 pointer-events-none" />
           <Input
-            placeholder="Filter notes..."
+            placeholder="Search notes..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 bg-grey-100 border-grey-200 text-grey-900 placeholder:text-grey-500"
+            className="pl-8 h-8 text-[13px] bg-grey-100/80 border-grey-200/60 rounded-md placeholder:text-grey-400 focus-visible:bg-grey-100 focus-visible:border-grey-300"
           />
         </div>
       </div>
 
-      {/* Trash notice banner */}
+      {/* Trash notice */}
       <AnimatePresence>
         {viewType === "trash" && (
           <motion.div
             key="trash-banner"
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.15 }}
-            className="overflow-hidden px-2"
+            className="px-3 pt-3 shrink-0"
           >
-            <div className="flex items-start gap-2.5 mt-3 px-3 pt-2.5 pb-4.5 border-b border-grey-200 mb-2">
-              <AlertTriangle className="w-3.5 h-3.5 text-grey-600 shrink-0 mt-0.5" />
-              <p className="text-xs text-grey-700 leading-relaxed">
-                Notes in Trash are permanently deleted after{" "}
-                <span className="font-medium">30 days</span>.
+            <div className="flex items-start gap-2 mb-2">
+              <AlertTriangle className="w-3.5 h-3.5 text-grey-500 shrink-0 mt-0.5" />
+              <p className="text-[12px] text-grey-600 leading-relaxed">
+                Notes are permanently deleted after{" "}
+                <span className="font-semibold text-grey-700">
+                  {EXPIRY_LABELS[trashExpiryDays] ?? `${trashExpiryDays} days`}
+                </span>
+                .
               </p>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Notes List */}
+      {/* Notes list */}
       <ScrollArea className="flex-1 overflow-auto">
-        <div className="p-2">
+        <div className="px-2 pt-2">
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-12 text-center text-grey-500 text-sm">
               Loading notes...
             </div>
           ) : totalCount === 0 ? (
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="flex flex-col items-center justify-center py-12 text-center"
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              className="flex flex-col items-center justify-center py-16 text-center px-4"
             >
-              <div className="w-16 h-16 rounded-full bg-grey-100 flex items-center justify-center mb-4">
-                <FileText className="w-8 h-8 text-grey-400" />
-              </div>
-              <h3 className="text-sm font-medium text-grey-900 mb-1">
+              <div className="relative mx-auto mb-6 w-[72px] h-[72px]">
+          <div className="absolute inset-0 rounded-2xl bg-grey-100/80" />
+          <div className="absolute inset-0 rounded-2xl flex items-center justify-center">
+            <div className="space-y-[6px]">
+              <div className="h-[2px] w-9 rounded-full bg-grey-300" />
+              <div className="h-[2px] w-6 rounded-full bg-grey-200" />
+              <div className="h-[2px] w-8 rounded-full bg-grey-300" />
+              <div className="h-[2px] w-5 rounded-full bg-grey-200" />
+            </div>
+          </div>
+        </div>
+              <h3 className="text-[14px] font-semibold text-grey-700 mb-1">
                 No notes found
               </h3>
-              <p className="text-xs text-grey-500">
+              <p className="text-[12px] text-grey-400 leading-relaxed">
                 {searchQuery
                   ? "Try a different search term"
                   : viewType === "trash"
                     ? "Your trash is empty"
-                    : "Create a new note to get started"}
+                    : "Create a note to get started"}
               </p>
             </motion.div>
           ) : (
             <>
               {/* Pinned section */}
               {pinnedNotes.length > 0 && (
-                <div className="mb-5">
+                <div className="mb-3">
+                  {/* Pinned header */}
                   <button
                     onClick={() => setIsPinnedOpen((prev) => !prev)}
-                    className="flex items-center gap-1.5 w-full px-3 py-1.5 mb-1 text-[11px] font-semibold uppercase tracking-wider text-grey-500 hover:text-grey-700 transition-colors"
+                    className="flex items-center gap-2 w-full px-2 py-1.5 mb-2 group rounded-sm"
                   >
-                    <span>Pinned</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-accent-500/70 shrink-0" />
+                    <span className="text-[10px] font-semibold uppercase tracking-widest text-accent-500/80">
+                      Pinned
+                    </span>
                     <motion.span
                       animate={{ rotate: isPinnedOpen ? 0 : -90 }}
-                      transition={{ duration: 0.2, ease: "easeInOut" }}
-                      className="ml-auto"
+                      transition={{ type: "spring", damping: 30, stiffness: 400 }}
+                      className="ml-auto text-grey-400 group-hover:text-grey-600 transition-colors"
                     >
                       <ChevronDown className="w-3.5 h-3.5" />
                     </motion.span>
@@ -303,37 +298,43 @@ export function NotesList() {
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2, ease: "easeInOut" }}
+                        transition={{ type: "spring", damping: 32, stiffness: 320 }}
                         style={{ overflow: "hidden" }}
                       >
-                        {pinnedNotes.map((note, index) => (
-                          <NoteCard
-                            key={note.id}
-                            note={note}
-                            isSelected={selectedNoteId === note.id}
-                            index={index}
-                            viewType={viewType}
-                            tags={tags}
-                            onSelect={() => handleNoteSelect(note.id)}
-                            onToggleFavorite={() =>
-                              toggleFavorite.mutate(note.id)
-                            }
-                            onTogglePin={() => togglePinned.mutate(note.id)}
-                            onArchive={() => archiveNote.mutate(note.id)}
-                            onUnarchive={() => unarchiveNote.mutate(note.id)}
-                            onDelete={() => deleteNote.mutate(note.id)}
-                            onRestore={() => restoreNote.mutate(note.id)}
-                            onHardDelete={() => setHardDeleteNoteId(note.id)}
-                            onEditTags={() => setTagModalNoteId(note.id)}
-                            onMoveTo={() => setMoveToNoteId(note.id)}
-                          />
-                        ))}
+                        <div className="space-y-1">
+                          {pinnedNotes.map((note, index) => (
+                            <NoteCard
+                              key={note.id}
+                              note={note}
+                              isSelected={selectedNoteId === note.id}
+                              index={index}
+                              viewType={viewType}
+                              tags={tags}
+                              onSelect={() => handleNoteSelect(note.id)}
+                              onToggleFavorite={() => toggleFavorite.mutate(note.id)}
+                              onTogglePin={() => togglePinned.mutate(note.id)}
+                              onArchive={() => archiveNote.mutate(note.id)}
+                              onUnarchive={() => unarchiveNote.mutate(note.id)}
+                              onDelete={() => deleteNote.mutate(note.id)}
+                              onRestore={() => restoreNote.mutate(note.id)}
+                              onHardDelete={() => setHardDeleteNoteId(note.id)}
+                              onEditTags={() => setTagModalNoteId(note.id)}
+                              onMoveTo={() => setMoveToNoteId(note.id)}
+                            />
+                          ))}
+                        </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
 
+                  {/* Separator */}
                   {unpinnedNotes.length > 0 && (
-                    <div className="mt-3 mb-2 mx-1 border-t border-grey-200" />
+                    <div className="mt-3 mb-2 px-1">
+                      <div className="h-px bg-grey-200/50" />
+                      <p className="text-[10px] uppercase tracking-[0.08em] text-grey-400 font-semibold px-1 mt-2 mb-1">
+                        Other Notes
+                      </p>
+                    </div>
                   )}
                 </div>
               )}
@@ -364,11 +365,11 @@ export function NotesList() {
         </div>
       </ScrollArea>
 
-      {/* Footer */}
-      <div className="p-3 border-t border-grey-200">
-        <p className="text-xs text-grey-500 text-center">
+      {/* Footer */}  
+      <div className="flex items-center px-4 py-2.5 border-t border-grey-200/60 shrink-0">
+        {/* <p className="text-[11px] text-grey-400 tabular-nums">
           {totalCount} {totalCount === 1 ? "note" : "notes"}
-        </p>
+        </p> */}
       </div>
 
       {/* Bulk action bar */}
@@ -379,7 +380,7 @@ export function NotesList() {
         onEditTags={handleBulkEditTags}
       />
 
-      {/* Single-note tag modal */}
+      {/* Single-note modals */}
       {tagModalNote && (
         <NoteTagsModal
           open={!!tagModalNoteId}
@@ -389,7 +390,6 @@ export function NotesList() {
         />
       )}
 
-      {/* Single-note move modal */}
       {moveToNote && (
         <MoveToModal
           open={!!moveToNoteId}
@@ -399,7 +399,7 @@ export function NotesList() {
         />
       )}
 
-      {/* Bulk move modal — reuse MoveToModal with the first selected note as a proxy */}
+      {/* Bulk move */}
       {bulkMoveNoteIds.length > 0 && (
         <MoveToModal
           open={true}
@@ -413,7 +413,7 @@ export function NotesList() {
         />
       )}
 
-      {/* Bulk tag modal — open with the first selected note */}
+      {/* Bulk tags */}
       {bulkTagNoteIds.length > 0 && (
         <NoteTagsModal
           open={true}
@@ -427,11 +427,11 @@ export function NotesList() {
         />
       )}
 
-      {/* Single-note permanent delete confirm */}
+      {/* Single hard-delete confirm */}
       <DeleteConfirmModal
         open={!!hardDeleteNoteId}
         title="Permanently delete note?"
-        description={`"${hardDeleteNote_?.title || "This note"}" will be permanently deleted and cannot be recovered. This action is irreversible.`}
+        description={`"${hardDeleteNote_?.title || "This note"}" will be permanently deleted and cannot be recovered.`}
         isPending={hardDeleteNote.isPending}
         onConfirm={handleConfirmHardDelete}
         onCancel={() => setHardDeleteNoteId(null)}
@@ -440,9 +440,17 @@ export function NotesList() {
       {/* Bulk delete confirm */}
       <DeleteConfirmModal
         open={bulkDeleteConfirmIds.length > 0}
-        title={`Move ${bulkDeleteConfirmIds.length} ${bulkDeleteConfirmIds.length === 1 ? "note" : "notes"} to trash?`}
-        description="These notes will be moved to trash and can be restored within 30 days."
-        isPending={deleteNote.isPending}
+        title={
+          viewType === "trash"
+            ? `Permanently delete ${bulkDeleteConfirmIds.length} ${bulkDeleteConfirmIds.length === 1 ? "note" : "notes"}?`
+            : `Move ${bulkDeleteConfirmIds.length} ${bulkDeleteConfirmIds.length === 1 ? "note" : "notes"} to trash?`
+        }
+        description={
+          viewType === "trash"
+            ? "These notes will be permanently deleted and cannot be recovered."
+            : "These notes will be moved to trash and can be restored within 30 days."
+        }
+        isPending={viewType === "trash" ? hardDeleteNote.isPending : deleteNote.isPending}
         onConfirm={confirmBulkDelete}
         onCancel={() => setBulkDeleteConfirmIds([])}
       />

@@ -48,10 +48,16 @@ export function useNoteEditor({
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
-  const pendingContentRef = useRef<{ content: string; preview: string } | null>(
-    null,
-  );
-  const pendingTitleRef = useRef<string | null>(null);
+  const pendingContentRef = useRef<{
+    noteId: string;
+    content: string;
+    preview: string;
+  } | null>(null);
+  const pendingTitleRef = useRef<{
+    noteId: string;
+    title: string;
+  } | null>(null);
+
   const contentTimerRef = useRef<NodeJS.Timeout | null>(null);
   const titleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const noteIdRef = useRef<string | null>(selectedNoteId);
@@ -92,26 +98,15 @@ export function useNoteEditor({
     pendingTitleRef.current = null;
   }, [clearContentTimer, clearTitleTimer]);
 
-  // Delete the note if it has no content and no title
-  const maybeDeleteIfEmpty = useCallback(() => {
-    const noteId = noteIdRef.current;
-    if (!noteId || !editorRef.current) return;
-    if (!isNoteContentEmpty(editorRef.current, titleRef.current)) return;
-
-    clearAllPending();
-    hardDeleteMutRef.current.mutate(noteId);
-  }, [clearAllPending]);
-
-  // Save flusher
+  // Save flushers
   const flushContentSave = useCallback(() => {
     const pending = pendingContentRef.current;
-    const noteId = noteIdRef.current;
-    if (!pending || !noteId) return;
+    if (!pending) return;
 
     clearContentTimer();
     pendingContentRef.current = null;
 
-    const savedForId = noteId;
+    const savedForId = pending.noteId;
     setIsSaving(true);
 
     updateMutRef.current.mutate(
@@ -137,17 +132,31 @@ export function useNoteEditor({
   }, [clearContentTimer]);
 
   const flushTitleSave = useCallback(() => {
-    const pendingTitle = pendingTitleRef.current;
-    const noteId = noteIdRef.current;
-    if (pendingTitle === null || !noteId) return;
+    const pending = pendingTitleRef.current;
+    if (!pending) return;
 
     clearTitleTimer();
     pendingTitleRef.current = null;
     updateMutRef.current.mutate({
-      id: noteId,
-      updates: { title: pendingTitle },
+      id: pending.noteId,
+      updates: { title: pending.title },
     });
   }, [clearTitleTimer]);
+
+  const flushAllPending = useCallback(() => {
+    flushContentSave();
+    flushTitleSave();
+  }, [flushContentSave, flushTitleSave]);
+
+  // Delete the note if it has no content and no title
+  const maybeDeleteIfEmpty = useCallback(() => {
+    const noteId = noteIdRef.current;
+    if (!noteId || !editorRef.current) return;
+    if (!isNoteContentEmpty(editorRef.current, titleRef.current)) return;
+
+    clearAllPending();
+    hardDeleteMutRef.current.mutate(noteId);
+  }, [clearAllPending]);
 
   // TipTap editor
   const editor = useEditor({
@@ -200,17 +209,19 @@ export function useNoteEditor({
       const content = editor.getHTML();
       const text = editor.getText();
 
-      pendingContentRef.current = {
-        content,
-        preview: text.length > 150 ? text.slice(0, 150) + "..." : text,
-      };
+      if (noteIdRef.current) {
+        pendingContentRef.current = {
+          noteId: noteIdRef.current,
+          content,
+          preview: text.length > 150 ? text.slice(0, 150) + "..." : text,
+        };
+      }
 
       if (!hasUnsavedChangesRef.current) {
         hasUnsavedChangesRef.current = true;
         setLastSaved(null);
       }
 
-      // When saveTrigger is 'blur', skip the debounce — save on blur only.
       const { saveTrigger } = useSettingsStore.getState().settings;
       if (saveTrigger === "blur") return;
 
@@ -231,6 +242,7 @@ export function useNoteEditor({
     editor?.setEditable(!isInTrash);
   }, [editor, isInTrash]);
 
+  // Handle note switching auto-save and empty-note deletion
   useEffect(() => {
     if (!editor) return;
 
@@ -240,6 +252,8 @@ export function useNoteEditor({
       if (isNoteContentEmpty(editor, titleRef.current)) {
         clearAllPending();
         hardDeleteMutRef.current.mutate(prevNoteId);
+      } else {
+        flushAllPending();
       }
     }
 
@@ -272,20 +286,33 @@ export function useNoteEditor({
     });
   }, [maybeDeleteIfEmpty]);
 
-  // Delete empty note when the component unmounts.
+  // Save pending changes and delete empty note when the component unmounts
   useEffect(() => {
     return () => {
-      clearAllPending();
-      maybeDeleteIfEmpty();
+      if (editorRef.current && noteIdRef.current) {
+        if (isNoteContentEmpty(editorRef.current, titleRef.current)) {
+          clearAllPending();
+          hardDeleteMutRef.current.mutate(noteIdRef.current);
+        } else {
+          flushAllPending();
+        }
+      } else {
+        clearAllPending();
+      }
     };
-  }, [clearAllPending, maybeDeleteIfEmpty]);
+  }, [clearAllPending, flushAllPending]);
 
   // Handlers
   const handleTitleChange = useCallback(
     (newTitle: string) => {
       setTitle(newTitle);
       titleRef.current = newTitle;
-      pendingTitleRef.current = newTitle;
+      if (noteIdRef.current) {
+        pendingTitleRef.current = {
+          noteId: noteIdRef.current,
+          title: newTitle,
+        };
+      }
       clearTitleTimer();
       titleTimerRef.current = setTimeout(flushTitleSave, TITLE_DEBOUNCE_MS);
     },

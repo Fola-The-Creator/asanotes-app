@@ -19,7 +19,7 @@ export function TrashBanner({ isInTrash, onRestore }: TrashBannerProps) {
           transition={{ duration: 0.2 }}
           className="overflow-hidden"
         >
-          <div className="flex items-center justify-between gap-3 mx-4 mt-3 px-4 py-2.5 rounded-lg bg-grey-100 border border-grey-200">
+          <div className="flex items-center justify-between gap-3 mx-6 mt-4 px-4 py-2.5 rounded-lg bg-grey-100/80 border border-grey-200/60">
             <div className="flex items-center gap-2.5">
               <p className="text-xs text-grey-700">
                 This note is in the {" "}

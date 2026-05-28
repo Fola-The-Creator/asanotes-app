@@ -1,7 +1,7 @@
 "use client";
 
 import { User, Mail, CalendarDays, Cloud, LogOut } from "lucide-react";
-import { useUser } from "@/hooks/useUser";
+import { useUser } from "@/hooks";
 import { Button } from "@/components/ui/Button";
 
 export function AccountSection() {
@@ -92,7 +92,7 @@ export function AccountSection() {
         className="w-full justify-center text-grey-600 border-grey-200 hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30 transition-colors"
       >
         <LogOut className="w-4 h-4" />
-        Sign out
+        Log out
       </Button>
     </div>
   );
