@@ -16,7 +16,6 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/DropdownMenu";
@@ -83,34 +82,6 @@ export function ProfileMenu({ collapsed = false }: ProfileMenuProps) {
         sideOffset={8}
         className="w-[220px]"
       >
-        {/* User identity header */}
-        <DropdownMenuLabel className="font-normal pb-2">
-          <div className="flex items-center gap-2.5">
-            {user?.avatar ? (
-              /*eslint-disable-next-line @next/next/no-img-element*/
-              <img
-                src={user.avatar}
-                alt={user?.name || "User"}
-                className="w-8 h-8 rounded-full object-cover shrink-0"
-              />
-            ) : (
-              <div className="w-8 h-8 rounded-full shrink-0 bg-accent-500/15 flex items-center justify-center text-[12px] font-semibold text-accent-500">
-                {initials}
-              </div>
-            )}
-            <div className="min-w-0">
-              <p className="text-[13px] font-semibold text-grey-900 truncate">
-                {user?.name || "Loading..."}
-              </p>
-              <p className="text-[11px] text-grey-500 truncate">
-                {user?.email || ""}
-              </p>
-            </div>
-          </div>
-        </DropdownMenuLabel>
-
-        <DropdownMenuSeparator />
-
         {/* Primary actions */}
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={openSettings}>

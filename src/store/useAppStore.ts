@@ -63,9 +63,4 @@ export const useAppStore = create<AppState>((set) => ({
       mobileView: "editor" as MobileView,
       mobileMenuOpen: false,
     }),
-
-  // Tracks whether the currently selected note was just created (no content yet)
-  newNoteId: null,
-  setNewNoteId: (id) => set({ newNoteId: id }),
-
 }));

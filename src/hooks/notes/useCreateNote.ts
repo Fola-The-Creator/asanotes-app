@@ -18,7 +18,6 @@ export function useCreateNote() {
       if (autoOpenNewNote && selectNewNote) {
         selectNewNote(newNote.id);
       }
-      useAppStore.getState().setNewNoteId(newNote.id);
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["notes"] });

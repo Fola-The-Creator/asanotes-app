@@ -15,6 +15,7 @@ import SuperscriptExt from "@tiptap/extension-superscript";
 import SubscriptExt from "@tiptap/extension-subscript";
 import Highlight from "@tiptap/extension-highlight";
 import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
+import { TableTouchResize } from "@/components/editor/extensions/TableTouchResize";
 import { createLowlight, common } from "lowlight";
 import { useEffect } from "react";
 
@@ -61,6 +62,7 @@ export function useTipTapEditor({
       TableRow,
       TableCell,
       TableHeader,
+      TableTouchResize,
       TextAlign.configure({
         types: ["heading", "paragraph"],
         alignments: ["left", "center", "right", "justify"],

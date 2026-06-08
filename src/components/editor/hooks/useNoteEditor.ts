@@ -16,11 +16,11 @@ import SuperscriptExt from "@tiptap/extension-superscript";
 import SubscriptExt from "@tiptap/extension-subscript";
 import Highlight from "@tiptap/extension-highlight";
 import { CodeBlockLowlight } from "@tiptap/extension-code-block-lowlight";
+import { TableTouchResize } from "@/components/editor/extensions/TableTouchResize";
 import { createLowlight, common } from "lowlight";
 import { CONTENT_DEBOUNCE_MS, TITLE_DEBOUNCE_MS } from "@/constants";
 import { useAppStore } from "@/store/useAppStore";
 import { useSettingsStore } from "@/store/useSettingsStore";
-import { isNoteContentEmpty } from "@/lib/noteUtils";
 import type { UseMutationResult } from "@tanstack/react-query";
 
 const lowlight = createLowlight(common);
@@ -148,16 +148,6 @@ export function useNoteEditor({
     flushTitleSave();
   }, [flushContentSave, flushTitleSave]);
 
-  // Delete the note if it has no content and no title
-  const maybeDeleteIfEmpty = useCallback(() => {
-    const noteId = noteIdRef.current;
-    if (!noteId || !editorRef.current) return;
-    if (!isNoteContentEmpty(editorRef.current, titleRef.current)) return;
-
-    clearAllPending();
-    hardDeleteMutRef.current.mutate(noteId);
-  }, [clearAllPending]);
-
   // TipTap editor
   const editor = useEditor({
     extensions: [
@@ -179,6 +169,7 @@ export function useNoteEditor({
       TableRow,
       TableCell,
       TableHeader,
+      TableTouchResize,
       TextAlign.configure({
         types: ["heading", "paragraph"],
         alignments: ["left", "center", "right", "justify"],
@@ -242,19 +233,14 @@ export function useNoteEditor({
     editor?.setEditable(!isInTrash);
   }, [editor, isInTrash]);
 
-  // Handle note switching auto-save and empty-note deletion
+  // Handle note switching auto-save
   useEffect(() => {
     if (!editor) return;
 
     const prevNoteId = prevNoteIdRef.current;
 
     if (prevNoteId && prevNoteId !== selectedNoteId) {
-      if (isNoteContentEmpty(editor, titleRef.current)) {
-        clearAllPending();
-        hardDeleteMutRef.current.mutate(prevNoteId);
-      } else {
-        flushAllPending();
-      }
+      flushAllPending();
     }
 
     if (selectedNoteId) {
@@ -266,6 +252,7 @@ export function useNoteEditor({
       clearAllPending();
 
       const targetContent = initialContent || "<p></p>";
+
       if (editor.getHTML() !== targetContent) {
         editor.commands.setContent(targetContent, false);
       }
@@ -275,27 +262,11 @@ export function useNoteEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedNoteId, editor]);
 
-  // Delete empty note when command palette opens
-  useEffect(() => {
-    let prev = useAppStore.getState().commandPaletteOpen;
-    return useAppStore.subscribe((state) => {
-      if (state.commandPaletteOpen && !prev) {
-        maybeDeleteIfEmpty();
-      }
-      prev = state.commandPaletteOpen;
-    });
-  }, [maybeDeleteIfEmpty]);
-
-  // Save pending changes and delete empty note when the component unmounts
+  // Save pending changes when the component unmounts
   useEffect(() => {
     return () => {
-      if (editorRef.current && noteIdRef.current) {
-        if (isNoteContentEmpty(editorRef.current, titleRef.current)) {
-          clearAllPending();
-          hardDeleteMutRef.current.mutate(noteIdRef.current);
-        } else {
-          flushAllPending();
-        }
+      if (noteIdRef.current) {
+        flushAllPending();
       } else {
         clearAllPending();
       }
@@ -307,6 +278,7 @@ export function useNoteEditor({
     (newTitle: string) => {
       setTitle(newTitle);
       titleRef.current = newTitle;
+
       if (noteIdRef.current) {
         pendingTitleRef.current = {
           noteId: noteIdRef.current,

@@ -29,7 +29,4 @@ export interface AppState {
   setMobileView: (view: MobileView) => void;
 
   selectNewNote: (id: string) => void;
-
-  newNoteId: string | null;
-  setNewNoteId: (id: string | null) => void;
 }

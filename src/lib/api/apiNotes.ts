@@ -2,8 +2,6 @@ import type { Note } from "@/types";
 import { dummyNotes } from "@/lib/dummy-data";
 import { TRASH_EXPIRY_DAYS } from "@/constants";
 import { useSettingsStore } from "@/store/useSettingsStore";
-import { useAppStore } from "@/store/useAppStore";
-import { isNoteDataEmpty } from "@/lib/noteUtils";
 
 // In-memory store
 let notesStore: Note[] = [...dummyNotes];
@@ -20,18 +18,8 @@ function purgeExpiredNotes(): void {
   });
 }
 
-// Purge any stale empty notes that should not persist in the library.
-function purgeEmptyNotes(): void {
-  const { selectedNoteId, newNoteId } = useAppStore.getState();
-  notesStore = notesStore.filter((note) => {
-    if (note.id === selectedNoteId || note.id === newNoteId) return true;
-    return !isNoteDataEmpty(note.title, note.content);
-  });
-}
-
 export async function getNotes(): Promise<Note[]> {
   purgeExpiredNotes();
-  purgeEmptyNotes();
   return [...notesStore];
 }
 

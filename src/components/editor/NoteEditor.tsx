@@ -137,7 +137,7 @@ export function NoteEditor() {
       >
         {!isInTrash && <AIToolsPanel />}
         <ScrollArea className="flex-1">
-          <div className="px-6 pt-8 pb-[200px]">
+          <div className="px-6 pt-8 pb-50">
             {editor && !isInTrash && (
               <>
                 <BubbleMenu editor={editor} />

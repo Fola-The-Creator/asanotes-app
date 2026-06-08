@@ -24,8 +24,6 @@ export function useHardDeleteNote() {
         setMobileView("list");
       }
 
-      useAppStore.getState().setNewNoteId(null);
-
       return { previousNotes };
     },
     onError: (_err, _id, context) => {
